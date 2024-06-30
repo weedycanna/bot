@@ -1,50 +1,44 @@
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove, KeyboardButtonPollType
+from typing import Tuple
+
+from aiogram.types import (KeyboardButton, KeyboardButtonPollType,
+                           ReplyKeyboardMarkup, ReplyKeyboardRemove)
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
 
-start_kb = ReplyKeyboardMarkup(
-    keyboard=[
-        [
-            KeyboardButton(text='📋 Menu'),
-            KeyboardButton(text='ℹ️ About Us'),
-        ],
-        [
-            KeyboardButton(text='💰 Payment Options'),
-            KeyboardButton(text='📦 Delivery Options'),
-        ],
-    ],
-    resize_keyboard=True,
-    input_field_placeholder='What are you interested in ?'
-)
+def get_keyboard(
+        *btns: str,
+        placeholder: str = None,
+        request_contact: int = None,
+        request_location: int = None,
+        sizes: Tuple[int] = (2,),
+):
+    '''
+        Parameters request_contact and request_location must be as indexes of btns args for buttons you need.
+        Example:
+        get_keyboard(
+                "Меню",
+                "О магазине",
+                "Варианты оплаты",
+                "Варианты доставки",
+                "Отправить номер телефона",
+                placeholder="Что вас интересует?",
+                request_contact=4,
+                sizes=(2, 2, 1)
+            )
+    '''
+    keyboard = ReplyKeyboardBuilder()
 
-del_kbd = ReplyKeyboardRemove()
+    for index, text in enumerate(btns, start=0):
 
-start_kb2 = ReplyKeyboardBuilder()
-start_kb2.add(
-    KeyboardButton(text='📋 Menu'),
-    KeyboardButton(text='ℹ️ About Us'),
-    KeyboardButton(text='💰 Payment Options'),
-    KeyboardButton(text='📦 Delivery Options'),
-)
-start_kb2.adjust(2, 2)
+        if request_contact and request_contact == index:
+            keyboard.add(KeyboardButton(text=text, request_contact=True))
 
+        elif request_location and request_location == index:
+            keyboard.add(KeyboardButton(text=text, request_location=True))
+        else:
+            keyboard.add(KeyboardButton(text=text))
 
-start_kb3 = ReplyKeyboardBuilder()
-start_kb3.attach(start_kb2)
-start_kb3.row(
-    KeyboardButton(text='📝 Leave feedback'),
-    KeyboardButton(text='👤 Personal Info'),
-)
-
-data_kb = ReplyKeyboardMarkup(
-    keyboard=[
-        [
-            KeyboardButton(text='Create quiz', request_poll=KeyboardButtonPollType()),
-        ],
-        [
-            KeyboardButton(text='Send phone number 📱', request_contact=True),
-            KeyboardButton(text='Send location 🗺', request_location=True),
-        ],
-    ],
-    resize_keyboard=True,
-)
+    return keyboard.adjust(*sizes).as_markup(
+        resize_keyboard=True,
+        input_field_placeholder=placeholder
+    )

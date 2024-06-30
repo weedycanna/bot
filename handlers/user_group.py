@@ -1,14 +1,33 @@
 from typing import Set
+
+from aiogram import Bot, Router, types
+from aiogram.filters import Command
+
 from filters.chat_types import ChatTypeFilter
-
-from aiogram import types, Router
-
-from utils import get_restricted_words, clean_text
+from utils import clean_text, get_restricted_words
 
 user_group_router = Router()
 user_group_router.message.filter(ChatTypeFilter(['group', 'supergroup']))
+user_group_router.edited_message.filter(ChatTypeFilter(['group', 'supergroup']))
 
 restricted_words: Set[str] = get_restricted_words()
+
+
+@user_group_router.message(Command('admin'))
+async def get_admins(message: types.Message, bot: Bot) -> None:
+    chat_id = message.chat.id
+    admins_list = await bot.get_chat_administrators(chat_id)
+    #просмотреть все данные и свойства полученных объектов
+    #print(admins_list)
+    # Код ниже это генератор списка, как и этот x = [i for i in range(10)]
+    admins_list = [
+        member.user.id
+        for member in admins_list
+        if member.status == 'creator' or member.status == 'administrator'
+    ]
+    bot.my_admins_list = admins_list
+    if message.from_user.id in admins_list:
+        await message.delete()
 
 
 @user_group_router.edited_message()

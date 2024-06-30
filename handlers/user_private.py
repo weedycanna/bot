@@ -1,82 +1,133 @@
-from aiogram.filters import CommandStart, Command, or_f
-from aiogram import types, Router, F
+from aiogram import F, Router, types
+from aiogram.filters import Command, CommandStart, or_f
+from aiogram.utils.formatting import Bold, as_list, as_marked_section
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from database.orm_query import orm_get_products
 from filters.chat_types import ChatTypeFilter
-from keybords.reply import start_kb, del_kbd, start_kb2, start_kb3, data_kb
-from aiogram.utils.formatting import as_marked_list, Bold, as_marked_section, as_list
+from handlers.menu_processing import get_menu_content
+from keybords.inline import get_callback_btns
+from keybords.reply import get_keyboard
 
 user_private_router = Router()
 user_private_router.message.filter(ChatTypeFilter(['private']))
 
 
 @user_private_router.message(CommandStart())
-async def on_startup(message: types.Message) -> None:
-    await message.answer("Hello, I'm a virtual assistant. How can I help you?",
-                         reply_markup=start_kb3.as_markup(
-                             resize_keyboard=True,
-                             input_field_placeholder='What are you interested in ?'
-                         ))
+async def start_cmd(message: types.Message, session: AsyncSession) -> None:
+    media, reply_markup = await get_menu_content(session, level=0, menu_name='main')
+
+    await message.answer_photo(media.media, caption=media.caption, reply_markup=reply_markup)
 
 
-@user_private_router.message((F.text.lower().contains('menu') | (F.text.lower() == 'menu')))
-@user_private_router.message(or_f(Command('menu'), (F.text.lower() == 'меню')))
-async def menu(message: types.Message) -> None:
-    await message.answer("Menu:", reply_markup=del_kbd)
-    # await bot.send_message(message.from_user.id, message.text)
-    # await message.reply(message.text)
 
 
-@user_private_router.message((F.text.lower().contains('about')) | (F.text.lower() == 'about'))
-@user_private_router.message(Command('about'))
-async def about(message: types.Message) -> None:
-    await message.answer("About Us:")
+    # await message.answer("Hello, I'm a virtual assistant. How can I help you?",
+    #                      reply_markup=get_callback_btns(btns={
+    #                          'Click me: ': 'some_1'
+    #                      }))
 
 
-@user_private_router.message((F.text.lower().contains('payment options')) | (F.text.lower() == 'delivery options'))
-@user_private_router.message(Command('payment'))
-async def payment(message: types.Message) -> None:
-    text = as_marked_section(
-        Bold('Payment Options:'),
-        'Card in Bot',
-        'Cash/Cart Payment',
-        'Cryptocurrency Payment',
-        marker='✅ '
-    )
-    await message.answer(text.as_html())
+# @user_private_router.callback_query(F.data.startswith('some_'))
+# async def counter(callback: types.CallbackQuery):
+#     number = int(callback.data.split('_')[-1])
+#
+#     await callback.message.edit_text(
+#         text=f"Counter - {number}",
+#         reply_markup=get_callback_btns(btns={
+#             'Click one more: ': f'some_{number + 1}'
+#         }))
 
 
-@user_private_router.message((F.text.lower().contains('delivery')) | (F.text.lower() == 'delivery options'))
-@user_private_router.message(Command('shipping'))
-async def shipping(message: types.Message) -> None:
-    text = as_list(
-        as_marked_section(
-            Bold('Delivery Options:'),
-            'Pickup',
-            'Courier',
-            'Post',
-            marker='✅ '
-        ),
-        as_marked_section(
-            Bold('Cancel:'),
-            'Pigeons',
-            'Teleport',
-            marker='❌ '
-        ),
-        sep='\n----------------\n'
-    )
-    await message.answer(text.as_html())
+# @user_private_router.message(CommandStart())
+# async def on_startup(message: types.Message) -> None:
+#     await message.answer("Hello, I'm a virtual assistant. How can I help you?",
+#                          reply_markup=get_keyboard(
+#                                 "📖 Menu",
+#                                 "ℹ️ About",
+#                                 "💰 Payment Options",
+#                                 "📦 Delivery Options",
+#                                 "👤 Personal Info",
+#                                 placeholder="What are you interested in?",
+#                                 request_contact=4,
+#                                 request_location=5,
+#                                 sizes=(2, 2)
+#                             ))
+#
+#
+# @user_private_router.message((F.text.lower().contains('menu') | (F.text.lower() == 'menu')))
+# @user_private_router.message(or_f(Command('menu'), (F.text.lower() == 'меню')))
+# async def menu(message: types.Message, session: AsyncSession) -> None:
+#     for product in await orm_get_products(session):
+#         await message.answer_photo(
+#             product.image,
+#             caption=f"<strong>{product.name}\
+#                        </strong>\n{product.description}\nPrice: {round(product.price, 2)}$",
+#         )
+#     await message.answer("Menu:")
+#     # await bot.send_message(message.from_user.id, message.text)
+#     # await message.reply(message.text)
+#
+#
+# @user_private_router.message((F.text.lower().contains('about')) | (F.text.lower() == 'about'))
+# @user_private_router.message(Command('about'))
+# async def about(message: types.Message) -> None:
+#     await message.answer("About Us:")
 
 
-@user_private_router.message((F.text.lower().contains('personal info')) | (F.text.lower() == 'personal info'))
-@user_private_router.message(Command('personal_info'))
-async def personal_info(message: types.Message) -> None:
-    await message.answer("Personal Info:", reply_markup=data_kb)
-
-
-@user_private_router.message(F.contact)
-async def contact(message: types.Message) -> None:
-    await message.answer(f'Number got: {str(message.contact)}')
-
-
-@user_private_router.message(F.location)
-async def location(message: types.Message) -> None:
-    await message.answer(f'Location got: {str(message.location)}')
+# @user_private_router.message((F.text.lower().contains('payment options')) | (F.text.lower() == 'delivery options'))
+# @user_private_router.message(Command('payment'))
+# async def payment(message: types.Message) -> None:
+#     text = as_marked_section(
+#         Bold('Payment Options:'),
+#         'Card in Bot',
+#         'Cash/Cart Payment',
+#         'Cryptocurrency Payment',
+#         marker='✅ '
+#     )
+#     await message.answer(text.as_html())
+#
+#
+# @user_private_router.message((F.text.lower().contains('delivery')) | (F.text.lower() == 'delivery options'))
+# @user_private_router.message(Command('shipping'))
+# async def shipping(message: types.Message) -> None:
+#     text = as_list(
+#         as_marked_section(
+#             Bold('Delivery Options:'),
+#             'Pickup',
+#             'Courier',
+#             'Post',
+#             marker='✅ '
+#         ),
+#         as_marked_section(
+#             Bold('Cancel:'),
+#             'Pigeons',
+#             'Teleport',
+#             marker='❌ '
+#         ),
+#         sep='\n----------------\n'
+#     )
+#     await message.answer(text.as_html())
+#
+#
+# @user_private_router.message((F.text.lower().contains('personal info')) | (F.text.lower() == 'personal info'))
+# @user_private_router.message(Command('personal_info'))
+# async def personal_info(message: types.Message) -> None:
+#     await message.answer("Personal Info:", reply_markup=get_keyboard(
+#         "📱 Send Phone Number",
+#         "🗺 Send Location",
+#         placeholder="What do you want to send?",
+#         request_contact=0,
+#         request_location=1,
+#         sizes=(2, 2)
+#     ))
+#
+#
+# @user_private_router.message(F.contact)
+# async def contact(message: types.Message) -> None:
+#     await message.answer(f'Number got: {str(message.contact)}')
+#
+#
+# @user_private_router.message(F.location)
+# async def location(message: types.Message) -> None:
+#     await message.answer(f'Location got: {str(message.location)}')
