@@ -1,4 +1,5 @@
-from sqlalchemy import Column, DateTime, Float, String, Text, func, ForeignKey, Numeric
+from sqlalchemy import (Column, DateTime, Float, ForeignKey, Numeric, String,
+                        Text, func)
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 

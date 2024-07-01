@@ -3,10 +3,10 @@ from aiogram.filters import Command, CommandStart, or_f
 from aiogram.utils.formatting import Bold, as_list, as_marked_section
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database.orm_query import orm_get_products, orm_add_user, orm_add_to_cart
+from database.orm_query import orm_add_to_cart, orm_add_user, orm_get_products
 from filters.chat_types import ChatTypeFilter
 from handlers.menu_processing import get_menu_content
-from keybords.inline import get_callback_btns, MenuCallBack
+from keybords.inline import MenuCallBack, get_callback_btns
 from keybords.reply import get_keyboard
 
 user_private_router = Router()

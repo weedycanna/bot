@@ -4,7 +4,7 @@ from aiogram import Bot, Router, types
 from aiogram.filters import Command
 
 from filters.chat_types import ChatTypeFilter
-from utils import clean_text, get_restricted_words
+from utils.utils import clean_text, get_restricted_words
 
 user_group_router = Router()
 user_group_router.message.filter(ChatTypeFilter(['group', 'supergroup']))

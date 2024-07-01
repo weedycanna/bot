@@ -1,17 +1,17 @@
-from aiogram import F, Router, types, Bot
+from aiogram import Bot, F, Router, types
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command, StateFilter, or_f
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database.orm_query import (orm_add_product, orm_delete_product,
-                                orm_get_product, orm_get_products,
-                                orm_update_product, orm_get_categories, orm_get_info_pages, orm_change_banner_image)
+from database.orm_query import (orm_add_product, orm_change_banner_image,
+                                orm_delete_product, orm_get_categories,
+                                orm_get_info_pages, orm_get_product,
+                                orm_get_products, orm_update_product)
 from filters.chat_types import ChatTypeFilter, IsAdmin
 from keybords.inline import get_callback_btns
 from keybords.reply import get_keyboard
-
 
 admin_router = Router()
 admin_router.message.filter(ChatTypeFilter(["private"]), IsAdmin())

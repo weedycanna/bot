@@ -1,16 +1,5 @@
 import math
-from string import punctuation
-from typing import Set, List, Tuple
-
-
-def clean_text(text: str) -> str:
-    return text.translate(str.maketrans('', '', punctuation))
-
-
-def get_restricted_words() -> Set[str]:
-    with open('files/restricted_words.txt', 'r') as file:
-        return set(word.strip() for word in file.read().split(','))
-
+from typing import List, Set, Tuple
 
 # Pagination class
 
@@ -46,10 +35,10 @@ class Paginator:
         if self.page < self.pages:
             self.page += 1
             return self.get_page()
-        raise IndexError(f'Next page does not exist. Use has_next() to check if there is a next page')
+        raise IndexError('Next page does not exist. Use has_next() to check if there is a next page')
 
     def get_previous(self):
         if self.page > 1:
             self.page -= 1
             return self.__get_slice()
-        raise IndexError(f'Previous page does not exist. Use has_previous() to check if there is a previous page')
+        raise IndexError('Previous page does not exist. Use has_previous() to check if there is a previous page')

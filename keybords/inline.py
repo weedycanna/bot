@@ -1,10 +1,8 @@
-from typing import Dict, Tuple, List
-
-from aiogram.types import InlineKeyboardButton
-from aiogram.utils.keyboard import InlineKeyboardBuilder
+from typing import Dict, List, Tuple
 
 from aiogram.filters.callback_data import CallbackData
-
+from aiogram.types import InlineKeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
 class MenuCallBack(CallbackData, prefix='menu'):

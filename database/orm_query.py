@@ -1,13 +1,10 @@
-from typing import Dict, Sequence
+from typing import Dict, List, Sequence
 
 from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List
-
 from sqlalchemy.orm import joinedload
 
-from database.models import Product, User, Banner, Category, Cart
-
+from database.models import Banner, Cart, Category, Product, User
 
 # Banner queries
 
