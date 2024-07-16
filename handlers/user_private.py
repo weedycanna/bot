@@ -1,5 +1,8 @@
+import random
+
 from aiogram import F, Router, types
 from aiogram.filters import Command, CommandStart, or_f
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.formatting import Bold, as_list, as_marked_section
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,6 +14,48 @@ from keybords.reply import get_keyboard
 
 user_private_router = Router()
 user_private_router.message.filter(ChatTypeFilter(['private']))
+
+stickers = ['😒', '🤓', '😎', '😬', '😯', '😶']
+
+correct_sticker = None
+captcha_checked = False
+
+
+@user_private_router.message(CommandStart())
+async def captcha_cmd(message: types.Message, session: AsyncSession):
+    global correct_sticker, captcha_checked
+    correct_sticker = random.choice(stickers)
+    captcha_checked = False
+
+    buttons = [InlineKeyboardButton(text=sticker, callback_data=sticker) for sticker in stickers]
+    rows = [buttons[i:i+3] for i in range(0, len(buttons), 3)]
+    keyboard = InlineKeyboardMarkup(inline_keyboard=rows)
+
+    await message.answer(f'<strong>Привет, подтверди, что Ты не робот,\n'
+                         f'выбери указанный смайл:</strong> {correct_sticker} \n\n'
+                         f'<i>После прохождения капчи, получишь доступ к боту</i>',
+                         reply_markup=keyboard, parse_mode='HTML')
+
+
+async def check_captcha(callback: types.CallbackQuery, session: AsyncSession):
+    global correct_sticker, captcha_checked
+    if not captcha_checked:
+        if callback.data == correct_sticker:
+            await callback.answer("Captcha passed!")
+            await callback.message.delete()
+            await start_cmd(callback.message, session)
+            captcha_checked = True
+        else:
+            await callback.answer("Wrong sticker. Try again.")
+
+
+@user_private_router.callback_query()
+async def process_callback(callback: types.CallbackQuery, session: AsyncSession):
+    if not captcha_checked:
+        await check_captcha(callback, session)
+    else:
+        callback_data = MenuCallBack.unpack(callback.data)
+        await user_menu(callback, callback_data, session)
 
 
 @user_private_router.message(CommandStart())
