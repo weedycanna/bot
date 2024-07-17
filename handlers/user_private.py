@@ -1,3 +1,4 @@
+import datetime
 import random
 
 from aiogram import F, Router, types
@@ -11,6 +12,7 @@ from filters.chat_types import ChatTypeFilter
 from handlers.menu_processing import get_menu_content
 from keybords.inline import MenuCallBack, get_callback_btns
 from keybords.reply import get_keyboard
+from sqlalchemy import text
 
 user_private_router = Router()
 user_private_router.message.filter(ChatTypeFilter(['private']))
@@ -21,20 +23,46 @@ correct_sticker = None
 captcha_checked = False
 
 
+async def has_passed_captcha_recently(user_id: int, session: AsyncSession) -> bool:
+    two_weeks_ago = datetime.datetime.now() - datetime.timedelta(minutes=1)
+    query = text("""
+        SELECT 1 FROM captcha 
+        WHERE user_id = :user_id AND timestamp > :two_weeks_ago
+    """)
+    result = await session.execute(query, {'user_id': user_id, 'two_weeks_ago': two_weeks_ago})
+    return result.scalar() is not None
+
+
+async def mark_captcha_passed(user_id: int, captcha_value: str, session: AsyncSession):
+    current_time = datetime.datetime.now()
+    query = text("""
+        INSERT INTO captcha (user_id, captcha, timestamp)
+        VALUES (:user_id, :captcha, :timestamp)
+        ON CONFLICT (user_id)
+        DO UPDATE SET captcha = EXCLUDED.captcha, timestamp = EXCLUDED.timestamp
+    """)
+    await session.execute(query, {'user_id': user_id, 'captcha': captcha_value, 'timestamp': current_time})
+    await session.commit()
+
+
 @user_private_router.message(CommandStart())
 async def captcha_cmd(message: types.Message, session: AsyncSession):
-    global correct_sticker, captcha_checked
-    correct_sticker = random.choice(stickers)
-    captcha_checked = False
-
-    buttons = [InlineKeyboardButton(text=sticker, callback_data=sticker) for sticker in stickers]
-    rows = [buttons[i:i+3] for i in range(0, len(buttons), 3)]
-    keyboard = InlineKeyboardMarkup(inline_keyboard=rows)
-
-    await message.answer(f'<strong>Привет, подтверди, что Ты не робот,\n'
-                         f'выбери указанный смайл:</strong> {correct_sticker} \n\n'
-                         f'<i>После прохождения капчи, получишь доступ к боту</i>',
-                         reply_markup=keyboard, parse_mode='HTML')
+    user_id = message.from_user.id
+    if await has_passed_captcha_recently(user_id, session):
+        # If the user has passed the captcha recently, directly show the main menu
+        await start_cmd(message, session)
+    else:
+        # Show the captcha as before
+        global correct_sticker, captcha_checked
+        correct_sticker = random.choice(stickers)
+        captcha_checked = False
+        buttons = [InlineKeyboardButton(text=sticker, callback_data=sticker) for sticker in stickers]
+        rows = [buttons[i:i+3] for i in range(0, len(buttons), 3)]
+        keyboard = InlineKeyboardMarkup(inline_keyboard=rows)
+        await message.answer(f'<strong>Привет, подтверди, что Ты не робот,\n'
+                             f'выбери указанный смайл:</strong> {correct_sticker} \n\n'
+                             f'<i>После прохождения капчи, получишь доступ к боту</i>',
+                             reply_markup=keyboard, parse_mode='HTML')
 
 
 async def check_captcha(callback: types.CallbackQuery, session: AsyncSession):
@@ -43,19 +71,27 @@ async def check_captcha(callback: types.CallbackQuery, session: AsyncSession):
         if callback.data == correct_sticker:
             await callback.answer("Captcha passed!")
             await callback.message.delete()
-            await start_cmd(callback.message, session)
+            await mark_captcha_passed(callback.from_user.id, callback.data, session)
             captcha_checked = True
+            await start_cmd(callback.message, session)
         else:
             await callback.answer("Wrong sticker. Try again.")
 
 
 @user_private_router.callback_query()
 async def process_callback(callback: types.CallbackQuery, session: AsyncSession):
-    if not captcha_checked:
-        await check_captcha(callback, session)
+    user_id = callback.from_user.id
+    if await has_passed_captcha_recently(user_id, session):
+        # If the user has passed the captcha recently, handle main menu interactions
+        try:
+            callback_data = MenuCallBack.unpack(callback.data)
+            await user_menu(callback, callback_data, session)
+        except ValueError:
+            # Handle unrecognized actions
+            await callback.answer("Unrecognized action.", show_alert=True)
     else:
-        callback_data = MenuCallBack.unpack(callback.data)
-        await user_menu(callback, callback_data, session)
+        # If the user has not passed the captcha, attempt to verify it
+        await check_captcha(callback, session)
 
 
 @user_private_router.message(CommandStart())

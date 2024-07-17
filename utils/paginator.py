@@ -3,6 +3,7 @@ from typing import List, Set, Tuple
 
 # Pagination class
 
+
 class Paginator:
     def __init__(self, array: List | Tuple, page: int = 1, per_page: int = 1):
         self.array = array

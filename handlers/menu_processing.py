@@ -140,6 +140,3 @@ async def get_menu_content(
         return await products(session, level, category, page)
     elif level == 3:
         return await carts(session, level, menu_name, page, user_id, product_id)
-
-
-

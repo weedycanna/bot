@@ -323,4 +323,3 @@ async def add_image(message: types.Message, state: FSMContext, session: AsyncSes
 @admin_router.message(AddProduct.image)
 async def not_correct_add_image(message: types.Message, state: FSMContext):
     await message.answer("You write wrong data, please load the image of the product:")
-

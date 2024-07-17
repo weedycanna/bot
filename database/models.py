@@ -2,6 +2,8 @@ from sqlalchemy import (Column, DateTime, Float, ForeignKey, Numeric, String,
                         Text, func)
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
+from sqlalchemy import UniqueConstraint
+
 
 class Base(DeclarativeBase):
     created = Column(DateTime, default=func.now())
@@ -63,12 +65,21 @@ class Cart(Base):
     __tablename__ = 'cart'
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey('user.user_id', ondelete='CASCADE'), nullable=False)
-    product_id: Mapped[int] = mapped_column(ForeignKey('product.id', ondelete='CASCADE'), nullable=False)
-    quantity: Mapped[int]
-
-    user: Mapped['User'] = relationship(backref='cart')
-    product: Mapped['Product'] = relationship(backref='cart')
+    user_id: Mapped[int] = mapped_column(ForeignKey('user.user_id', ondelete='CASCADE'), nullable=False, index=True)
+    timestamp: Mapped[str] = mapped_column(DateTime, default=func.now())
 
     def __repr__(self):
         return f"<Cart {self.user_id} {self.product_id}>"
+
+
+class CaptchaRecord(Base):
+    __tablename__ = 'captcha'
+    __table_args__ = (UniqueConstraint('user_id', name='uix_user_id'),)
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey('user.user_id', ondelete='CASCADE'), nullable=False, index=True)
+    captcha: Mapped[str] = mapped_column(String(50), nullable=False)
+    timestamp: Mapped[str] = mapped_column(DateTime, default=func.now())
+
+    def __repr__(self):
+        return f"<Captcha {self.id}>"

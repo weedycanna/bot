@@ -33,4 +33,3 @@ class DataBaseSession(BaseMiddleware):
 #         self.counter += 1
 #         data['counter'] = self.counter
 #         return await handler(event, data)
-
