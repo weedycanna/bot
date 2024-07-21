@@ -73,10 +73,12 @@ class Cart(Base):
     __tablename__ = "cart"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(
-        ForeignKey("user.user_id", ondelete="CASCADE"), nullable=False, index=True
-    )
-    timestamp: Mapped[str] = mapped_column(DateTime, default=func.now())
+    user_id: Mapped[int] = mapped_column(ForeignKey('user.user_id', ondelete='CASCADE'), nullable=False)
+    product_id: Mapped[int] = mapped_column(ForeignKey('product.id', ondelete='CASCADE'), nullable=False)
+    quantity: Mapped[int]
+
+    user: Mapped['User'] = relationship(backref='cart')
+    product: Mapped['Product'] = relationship(backref='cart')
 
     def __repr__(self):
         return f"<Cart {self.user_id} {self.product_id}>"

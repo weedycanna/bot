@@ -149,10 +149,8 @@ async def orm_add_to_cart(session: AsyncSession, user_id: int, product_id: int) 
         await session.commit()
 
 
-async def orm_get_user_carts(session: AsyncSession, user_id: int) -> Sequence[Cart]:
-    query = (
-        select(Cart).filter(Cart.user_id == user_id).options(joinedload(Cart.product))
-    )
+async def orm_get_user_carts(session: AsyncSession, user_id):
+    query = select(Cart).filter(Cart.user_id == user_id).options(joinedload(Cart.product))
     result = await session.execute(query)
     return result.scalars().all()
 
