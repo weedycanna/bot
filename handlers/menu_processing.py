@@ -1,12 +1,21 @@
 from aiogram.types import InputMediaPhoto
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database.orm_query import (orm_add_to_cart, orm_delete_from_cart,
-                                orm_get_banner, orm_get_categories,
-                                orm_get_products, orm_get_user_carts,
-                                orm_reduce_product_in_cart)
-from keybords.inline import (get_products_btns, get_user_cart,
-                             get_user_catalog_btns, get_user_main_btns)
+from database.orm_query import (
+    orm_add_to_cart,
+    orm_delete_from_cart,
+    orm_get_banner,
+    orm_get_categories,
+    orm_get_products,
+    orm_get_user_carts,
+    orm_reduce_product_in_cart,
+)
+from keybords.inline import (
+    get_products_btns,
+    get_user_cart,
+    get_user_catalog_btns,
+    get_user_main_btns,
+)
 from utils.paginator import Paginator
 
 
@@ -33,10 +42,10 @@ async def catalog(session: AsyncSession, level: int, menu_name: str):
 async def pages(paginator: Paginator):
     btns = dict()
     if paginator.has_previous():
-        btns['◀ Prev'] = 'previous'
+        btns["◀ Prev"] = "previous"
 
     if paginator.has_next():
-        btns['Next ▶'] = 'next'
+        btns["Next ▶"] = "next"
 
     return btns
 
@@ -49,9 +58,9 @@ async def products(session: AsyncSession, level: int, category: int, page: int):
 
     image = InputMediaPhoto(
         media=product.image,
-        caption=f'<strong>{product.name}\
+        caption=f"<strong>{product.name}\
                 </strong>\n{product.description}\nPrice: {round(product.price, 2)}\n\
-                <strong>Good {paginator.page} of {paginator.pages}</strong>',
+                <strong>Good {paginator.page} of {paginator.pages}</strong>",
     )
 
     pagination_btns = await pages(paginator)
@@ -123,13 +132,13 @@ async def carts(session, level, menu_name, page, user_id, product_id):
 
 
 async def get_menu_content(
-        session: AsyncSession,
-        level: int,
-        menu_name: str,
-        category: int | None = None,
-        page: int | None = None,
-        product_id: int | None = None,
-        user_id: int | None = None,
+    session: AsyncSession,
+    level: int,
+    menu_name: str,
+    category: int | None = None,
+    page: int | None = None,
+    product_id: int | None = None,
+    user_id: int | None = None,
 ):
 
     if level == 0:
