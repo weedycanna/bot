@@ -1,4 +1,4 @@
-# Pizza Shop Bot
+# Pizzeria bot
 The project for study Aiogram v3.
 
 #### Stack:
