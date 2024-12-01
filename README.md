@@ -35,6 +35,7 @@ All actions should be executed from the source directory of the project and only
 Example env values
 TOKEN=7765659692:AAG0gyOcBtuFiu2Ab1-9P0YYg0KtYy-tYEW
 DB_PG=postgresql+asyncpg://test:tests@localhost:5432/test
+```
 
 ```
 Run a file called app.
