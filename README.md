@@ -1,4 +1,4 @@
-# Swiss Knife Client Bot
+# Pizza Shop Bot
 The project for study Aiogram v3.
 
 #### Stack:
