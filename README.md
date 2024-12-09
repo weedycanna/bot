@@ -39,3 +39,7 @@ DB_PG=postgresql+asyncpg://test:tests@localhost:5432/test
 
 Run a file called app.
 ```
+
+## License
+
+This project uses the [MIT] license(https://github.com/Sauberr/pizzeria-bot/blob/master/LICENSE)
