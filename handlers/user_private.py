@@ -8,11 +8,17 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database.orm_query import orm_add_to_cart, orm_add_user
+from aiogram.filters import Command
+from aiogram.types import CallbackQuery, Message, Union
+
+from queries.banner_queries import orm_get_banner
+from queries.cart_queries import orm_add_to_cart
 from filters.chat_types import ChatTypeFilter
 from handlers.admin_private import category_choice
 from handlers.menu_processing import get_menu_content
-from keybords.inline import MenuCallBack
+from keybords.inline import MenuCallBack, get_user_catalog_btns
+from queries.category_queries import orm_get_categories
+from queries.user_queries import orm_add_user
 
 user_private_router = Router()
 user_private_router.message.filter(ChatTypeFilter(["private"]))
@@ -24,7 +30,7 @@ captcha_checked = {}
 
 
 async def has_passed_captcha_recently(user_id: int, session: AsyncSession) -> bool:
-    two_weeks_ago = datetime.datetime.now() - datetime.timedelta(minutes=1)
+    two_weeks_ago = datetime.datetime.now() - datetime.timedelta(minutes=600)
     query = text(
         """
             SELECT 1 FROM captcha 
@@ -183,3 +189,72 @@ async def user_menu(
 
     await callback.message.edit_media(media=media, reply_markup=reply_markup)
     await callback.answer()
+
+
+@user_private_router.message(Command(commands=["main", "menu", "cart", "about", "payment", "shipping"]))
+@user_private_router.callback_query(MenuCallBack.filter())
+async def process_menu_command(update: Union[CallbackQuery, Message], session: AsyncSession):
+    try:
+        if isinstance(update, CallbackQuery):
+            callback_data = MenuCallBack.unpack(update.data)
+            menu_name = callback_data.menu_name
+            level = callback_data.level
+            category = callback_data.category
+            page = callback_data.page
+            product_id = callback_data.product_id
+            user_id = update.from_user.id
+            target = update.message
+            is_callback = True
+        else:
+            menu_name = update.text[1:]
+            level = 0 if menu_name != "menu" else 1
+            category = None
+            page = None
+            product_id = None
+            user_id = update.from_user.id
+            target = update
+            is_callback = False
+
+        if not is_callback and menu_name == "menu":
+            categories = await orm_get_categories(session)
+            banner = await orm_get_banner(session, menu_name)
+
+            await target.answer_photo(
+                photo=banner.image,
+                caption=f"<b>{banner.description}</b>\n\nВыберите категорию:",
+                reply_markup=get_user_catalog_btns(level=1, categories=categories),
+                parse_mode="HTML"
+            )
+            return
+
+        image, keyboard = await get_menu_content(
+            session=session,
+            level=level,
+            menu_name=menu_name,
+            category=category,
+            page=page,
+            product_id=product_id,
+            user_id=user_id
+        )
+
+        if is_callback:
+            await target.edit_media(
+                media=image,
+                reply_markup=keyboard
+            )
+            await update.answer()
+        else:
+            await target.answer_photo(
+                photo=image.media,
+                caption=image.caption,
+                reply_markup=keyboard,
+                parse_mode="HTML"
+            )
+
+    except Exception as e:
+        print(f"Error in menu handler: {e}")
+        error_message = f"Произошла ошибка при открытии меню {menu_name}"
+        if is_callback:
+            await update.answer(error_message, show_alert=True)
+        else:
+            await target.answer(error_message)

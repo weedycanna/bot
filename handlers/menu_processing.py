@@ -1,28 +1,22 @@
 from aiogram.types import InputMediaPhoto
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database.orm_query import (
-    orm_add_to_cart,
-    orm_delete_from_cart,
-    orm_get_banner,
-    orm_get_categories,
-    orm_get_products,
-    orm_get_user_carts,
-    orm_reduce_product_in_cart,
-)
 from keybords.inline import (
     get_products_btns,
     get_user_cart,
     get_user_catalog_btns,
     get_user_main_btns,
 )
+from queries.admin_queries import orm_get_products
+from queries.banner_queries import orm_get_banner
+from queries.cart_queries import orm_reduce_product_in_cart, orm_delete_from_cart, orm_get_user_carts, orm_add_to_cart
+from queries.category_queries import orm_get_categories
 from utils.paginator import Paginator
 
 
 async def main_menu(session: AsyncSession, level: int, menu_name: str):
     banner = await orm_get_banner(session, menu_name)
     image = InputMediaPhoto(media=str(banner.image), caption=banner.description)
-
     kbds = get_user_main_btns(level=level)
 
     return image, kbds
@@ -48,6 +42,7 @@ async def pages(paginator: Paginator):
         btns["Next ▶"] = "next"
 
     return btns
+
 
 
 async def products(session: AsyncSession, level: int, category: int, page: int):
@@ -149,3 +144,6 @@ async def get_menu_content(
         return await products(session, level, category, page)
     elif level == 3:
         return await carts(session, level, menu_name, page, user_id, product_id)
+
+
+

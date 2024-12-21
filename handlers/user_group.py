@@ -31,8 +31,15 @@ async def get_admins(message: types.Message, bot: Bot) -> None:
 @user_group_router.message()
 async def cleaner(message: types.Message) -> None:
     if restricted_words.intersection(clean_text(message.text.lower()).split()):
+        first_name = message.from_user.first_name or ""
+        last_name = message.from_user.last_name or ""
+        full_name = f"{first_name} {last_name}"
+
         await message.answer(
-            f"{message.from_user.username}, keeps order in the chat! 🤬"
+            f"{full_name}, keeps order in the chat! 🤬"
         )
+
         await message.delete()
         await message.chat.ban(message.from_user.id)
+
+

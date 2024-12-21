@@ -2,22 +2,19 @@ from aiogram import Bot, F, Router, types
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command, StateFilter, or_f
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import State, StatesGroup
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database.orm_query import (
-    orm_add_product,
-    orm_change_banner_image,
-    orm_delete_product,
-    orm_get_categories,
-    orm_get_info_pages,
-    orm_get_product,
-    orm_get_products,
-    orm_update_product,
-)
+
 from filters.chat_types import ChatTypeFilter, IsAdmin
 from keybords.inline import get_callback_btns
 from keybords.reply import get_keyboard
+from queries.admin_queries import orm_get_products, orm_delete_product, orm_get_product, orm_update_product, \
+    orm_add_product
+from queries.banner_queries import orm_get_info_pages, orm_change_banner_image
+from queries.category_queries import orm_get_categories
+
+from states.banner_state import AddBanner
+from states.product_state import AddProduct
 
 admin_router = Router()
 admin_router.message.filter(ChatTypeFilter(["private"]), IsAdmin())
@@ -29,7 +26,6 @@ ADMIN_KB = get_keyboard(
     placeholder="What do you want to do?",
     sizes=(2,),
 )
-
 
 @admin_router.message(Command("admin"))
 async def admin_features(message: types.Message) -> None:
@@ -59,15 +55,18 @@ async def assortment(message: types.Message, session: AsyncSession):
         "Choose the category:", reply_markup=get_callback_btns(btns=btns)
     )
 
-
 @admin_router.callback_query(F.data.startswith("category_"))
 async def starring_at_product(callback: types.CallbackQuery, session: AsyncSession):
     category_id = callback.data.split("_")[-1]
-    for product in await orm_get_products(session, int(category_id)):
+    print(f"Callback triggered for category_id: {category_id}")
+
+    products = await orm_get_products(session, int(category_id))
+    print(f"Products fetched for category {category_id}: {products}")
+
+    for product in products:
         await callback.message.answer_photo(
             product.image,
-            caption=f"<strong>{product.name}\
-                    </strong>\n{product.description}\nPrice: {round(product.price, 2)}💵",
+            caption=f"<strong>{product.name}</strong>\n{product.description}\nPrice: {round(product.price, 2)}💵",
             reply_markup=get_callback_btns(
                 btns={
                     "Delete": f"delete_{product.id}",
@@ -90,10 +89,6 @@ async def delete_product(callback: types.CallbackQuery, session: AsyncSession):
 
     await callback.answer("Good deleted successfully!")
     await callback.message.answer("Good deleted successfully!")
-
-
-class AddBanner(StatesGroup):
-    image: str = State()
 
 
 @admin_router.message(StateFilter(None), F.text == "Add/Change banner")
@@ -127,28 +122,9 @@ async def add_banner(
     await message.answer("Banner added/changed successfully!")
     await state.clear()
 
-
 @admin_router.message(AddBanner.image)
 async def not_correct_add_banner(message: types.Message) -> None:
     await message.answer("You write wrong data, please load the image of the banner:")
-
-
-class AddProduct(StatesGroup):
-    name: str = State()
-    description: str = State()
-    category: str = State()
-    price: float = State()
-    image = State()
-
-    product_for_change = None
-
-    texts = {
-        "AddProduct:name": "Enter the name of the product you want to add again:",
-        "AddProduct:description": "Enter the description of the product again:",
-        "AddProduct:category": "Enter the category of the product again:",
-        "AddProduct:price": "Enter the price of the product again:",
-        "AddProduct:image": "Load the image of the product again:",
-    }
 
 
 @admin_router.callback_query(StateFilter(None), F.data.startswith("edit_"))
@@ -180,7 +156,6 @@ async def add_product(message: types.Message, state: FSMContext):
 @admin_router.message(StateFilter("*"), Command("cancel"))
 @admin_router.message(StateFilter("*"), F.text.casefold() == "cancel")
 async def cancel_handler(message: types.Message, state: FSMContext):
-
     current_state = await state.get_data()
     if current_state is None:
         return
@@ -194,7 +169,6 @@ async def cancel_handler(message: types.Message, state: FSMContext):
 @admin_router.message(StateFilter("*"), Command("back"))
 @admin_router.message(StateFilter("*"), F.text.casefold() == "back")
 async def back_step_handler(message: types.Message, state: FSMContext):
-
     current_state = await state.get_state()
 
     if current_state == AddProduct.name:
@@ -211,7 +185,6 @@ async def back_step_handler(message: types.Message, state: FSMContext):
             return
         previous = step
 
-
 @admin_router.message(AddProduct.name, or_f(F.text, F.text == "."))
 async def add_name(message: types.Message, state: FSMContext):
     if message.text == ".":
@@ -227,11 +200,9 @@ async def add_name(message: types.Message, state: FSMContext):
     await message.answer("Enter the description of the product:")
     await state.set_state(AddProduct.description)
 
-
 @admin_router.message(AddProduct.name)
 async def not_correct_add_name(message: types.Message, state: FSMContext):
     await message.answer("You write wrong data, please write the name of the product:")
-
 
 @admin_router.message(AddProduct.description, F.text)
 async def add_description(
@@ -240,7 +211,7 @@ async def add_description(
     if message.text == "." and AddProduct.product_for_change:
         await state.update_data(description=AddProduct.product_for_change.description)
     else:
-        if 4 >= len(message.text) >= 1000:
+        if 4 >= len(message.text) <= 1000:
             await message.answer(
                 "Product description is too long or too short, \n please write the description of the product:"
             )
@@ -255,13 +226,11 @@ async def add_description(
     )
     await state.set_state(AddProduct.category)
 
-
 @admin_router.message(AddProduct.description)
 async def not_correct_add_description(message: types.Message, state: FSMContext):
     await message.answer(
         "You write wrong data, please write the description of the product:"
     )
-
 
 @admin_router.callback_query(AddProduct.category)
 async def category_choice(
@@ -278,13 +247,11 @@ async def category_choice(
         await callback.message.answer("Choose the category from the list")
         await callback.answer()
 
-
 @admin_router.message(AddProduct.category)
 async def not_correct_category_choice(message: types.Message, state: FSMContext):
     await message.answer(
         "You write wrong data, please choose the category from the list:"
     )
-
 
 @admin_router.message(AddProduct.price)
 async def add_price(message: types.Message, state: FSMContext):
@@ -301,11 +268,9 @@ async def add_price(message: types.Message, state: FSMContext):
     await message.answer("Load the image of the product:")
     await state.set_state(AddProduct.image)
 
-
 @admin_router.message(AddProduct.price)
 async def not_correct_add_price(message: types.Message, state: FSMContext):
     await message.answer("You write wrong data, please write the price of the product:")
-
 
 @admin_router.message(AddProduct.image, or_f(F.photo, F.text == "."))
 async def add_image(message: types.Message, state: FSMContext, session: AsyncSession):
@@ -339,7 +304,7 @@ async def add_image(message: types.Message, state: FSMContext, session: AsyncSes
 
     AddProduct.product_for_change = None
 
-
 @admin_router.message(AddProduct.image)
 async def not_correct_add_image(message: types.Message, state: FSMContext):
     await message.answer("You write wrong data, please load the image of the product:")
+
