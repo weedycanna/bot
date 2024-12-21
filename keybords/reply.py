@@ -2,9 +2,6 @@ from typing import Tuple
 
 from aiogram.types import (
     KeyboardButton,
-    KeyboardButtonPollType,
-    ReplyKeyboardMarkup,
-    ReplyKeyboardRemove,
 )
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
@@ -16,20 +13,7 @@ def get_keyboard(
     request_location: int = None,
     sizes: Tuple[int] = (2,),
 ):
-    """
-    Parameters request_contact and request_location must be as indexes of btns args for buttons you need.
-    Example:
-    get_keyboard(
-            "Меню",
-            "О магазине",
-            "Варианты оплаты",
-            "Варианты доставки",
-            "Отправить номер телефона",
-            placeholder="Что вас интересует?",
-            request_contact=4,
-            sizes=(2, 2, 1)
-        )
-    """
+
     keyboard = ReplyKeyboardBuilder()
 
     for index, text in enumerate(btns, start=0):
