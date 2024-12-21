@@ -1,0 +1,7 @@
+start - Launch the bot 🤖
+menu - Show menu 📋
+about - About Us ℹ️
+payment - Payment options 💰
+shipping - Delivery options 🚚
+orders - Your orders 📦
+personal - Personal information 📝

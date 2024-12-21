@@ -22,4 +22,5 @@ description_for_info_pages = {
     ).as_html(),
     "catalog": "Categories: ",
     "cart": "Cart empty!",
+    "orders": "Your Orders:",
 }
