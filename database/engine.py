@@ -4,7 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 
 from common.texts_for_db import categories, description_for_info_pages
 from database.models import Base
-from database.orm_query import orm_add_banner_description, orm_create_categories
+from queries.banner_queries import orm_add_banner_description
+from queries.category_queries import orm_create_categories
 
 engine = create_async_engine(os.getenv("DB_PG"), echo=True)
 

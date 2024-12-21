@@ -6,8 +6,10 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
-    func,
+    func
 )
+from sqlalchemy.dialects.postgresql import UUID
+import uuid
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -82,6 +84,22 @@ class Cart(Base):
 
     def __repr__(self):
         return f"<Cart {self.user_id} {self.product_id}>"
+
+
+class Order(Base):
+    __tablename__ = "order"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[int] = mapped_column(ForeignKey('user.user_id', ondelete='CASCADE'), nullable=False)
+    name: Mapped[str] = mapped_column(String(150), nullable=False)
+    address: Mapped[str] = mapped_column(Text, nullable=False)
+    phone: Mapped[str] = mapped_column(String(20), nullable=False)
+    status: Mapped[str] = mapped_column(String(25), nullable=False, default="pending")
+
+    user: Mapped['User'] = relationship(backref='order')
+
+    def __repr__(self):
+        return f"<Order {self.id}>"
 
 
 class CaptchaRecord(Base):
