@@ -1,7 +1,7 @@
 from typing import Dict, List, Tuple
 
 from aiogram.filters.callback_data import CallbackData
-from aiogram.types import InlineKeyboardButton
+from aiogram.types import InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
@@ -18,6 +18,7 @@ def get_user_main_btns(*, level: int, sizes: Tuple[int] = (2,)):
     btns = {
         "Goods 🍕": "catalog",
         "Cart 🛒": "cart",
+        "Orders 📦": "orders",
         "About us ℹ️": "about",
         "Payment 💰": "payment",
         "Delivery 🚚": "shipping",
@@ -37,6 +38,13 @@ def get_user_main_btns(*, level: int, sizes: Tuple[int] = (2,)):
                 InlineKeyboardButton(
                     text=text,
                     callback_data=MenuCallBack(level=3, menu_name=menu_name).pack(),
+                )
+            )
+        elif menu_name == "orders":
+            keyboard.add(
+                InlineKeyboardButton(
+                    text=text,
+                    callback_data=MenuCallBack(level=level, menu_name=menu_name).pack(),
                 )
             )
         else:
@@ -240,33 +248,9 @@ def get_callback_btns(*, btns: Dict[str, str], sizes: Tuple[int] = (2,)):
     return keyboard.adjust(*sizes).as_markup()
 
 
-# def get_url_btns(
-#     *,
-#     btns: Dict[str, str],
-#     sizes: Tuple[int] = (2,),):
-#
-#     keyboard = InlineKeyboardBuilder()
-#
-#     for text, url in btns.values():
-#
-#         keyboard.add(InlineKeyboardButton(text=text, url=url))
-#
-#     return keyboard.adjust(*sizes).as_markup()
-
-
-# Create mix from Callback and URL buttons
-
-# def get_inline_mix_btns(
-#     *,
-#     btns: Dict[str, str],
-#     sizes: Tuple[int] = (2,)):
-#
-#     keyboard = InlineKeyboardBuilder()
-#
-#     for text, value in btns.items():
-#         if '://' in value:
-#             keyboard.add(InlineKeyboardButton(text=text, url=value))
-#         else:
-#             keyboard.add(InlineKeyboardButton(text=text, callback_data=value))
-#
-#     return keyboard.adjust(*sizes).as_markup()
+def get_back_button():
+    return ReplyKeyboardMarkup(
+        keyboard=[[KeyboardButton(text="⬅️ Back")]],
+        resize_keyboard=True,
+        one_time_keyboard=False
+    )

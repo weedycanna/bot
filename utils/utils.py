@@ -1,7 +1,6 @@
-import logging
-import os
 from string import punctuation
-from typing import List, Set, Tuple
+from typing import Set
+from phonenumbers import format_number, PhoneNumberFormat, parse, is_valid_number
 
 
 def clean_text(text: str) -> str:
@@ -9,11 +8,23 @@ def clean_text(text: str) -> str:
 
 
 def get_restricted_words(file_path: str = "files/restricted_words.txt") -> Set[str]:
-
     try:
-        with open(file_path, "r") as file:
-            restricted_words = {word.strip() for word in file}
+        with open(file_path, "r", encoding="utf-8") as file:
+            restricted_words = {
+                word.strip().lower()
+                for line in file
+                for word in line.split(",")
+            }
             return restricted_words
     except FileNotFoundError:
-        logging.error("File not found")
         return set()
+
+
+def format_phone_number(phone: str) -> str:
+    try:
+        phone_number = parse(phone, 'UA')
+        if not is_valid_number(phone_number):
+            return None
+        return format_number(phone_number, PhoneNumberFormat.INTERNATIONAL)
+    except Exception as e:
+        return None
