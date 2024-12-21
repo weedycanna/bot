@@ -1,7 +1,9 @@
+import asyncio
 import datetime
 import random
 
-from aiogram import Router, types
+from aiogram import Router, types, Bot
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
@@ -258,3 +260,35 @@ async def process_menu_command(update: Union[CallbackQuery, Message], session: A
             await update.answer(error_message, show_alert=True)
         else:
             await target.answer(error_message)
+
+
+@user_private_router.message(Command("clear"))
+async def clear_private_user(message: types.Message, bot: Bot) -> None:
+    try:
+        if message.chat.type != "private":
+            return
+
+        command, *args = message.text.split()
+        num_messages = int(args[0]) if args and args[0].isdigit() else 10
+
+        deleted_count = 0
+        for i in range(num_messages):
+            try:
+                message_id = message.message_id - i
+                await bot.delete_message(message.chat.id, message_id)
+                deleted_count += 1
+            except TelegramBadRequest:
+                continue
+
+        if deleted_count > 0:
+            notification = await message.answer(f"Удалено {deleted_count} сообщений!")
+            await asyncio.sleep(3)
+            try:
+                await notification.delete()
+            except TelegramBadRequest:
+                pass
+
+    except ValueError:
+        await message.answer("Неверный формат команды. Используйте: /clear или /clear <число>")
+    except Exception as e:
+        await message.answer(f"Произошла ошибка: {str(e)}")

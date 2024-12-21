@@ -1,5 +1,6 @@
-from aiogram import Bot, F, Router, types
-from aiogram.exceptions import TelegramBadRequest
+
+
+from aiogram import F, Router, types
 from aiogram.filters import Command, StateFilter, or_f
 from aiogram.fsm.context import FSMContext
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -30,21 +31,6 @@ ADMIN_KB = get_keyboard(
 @admin_router.message(Command("admin"))
 async def admin_features(message: types.Message) -> None:
     await message.answer("What do you want to do?", reply_markup=ADMIN_KB)
-
-
-@admin_router.message(Command("clear"))
-async def clear(message: types.Message, bot: Bot) -> None:
-    command, *args = message.text.split()
-    num_messages = int(args[0]) if args and args[0].isdigit() else 10
-    try:
-        for i in range(num_messages):
-            message_id = message.message_id - i
-            try:
-                await bot.delete_message(message.chat.id, message_id)
-            except TelegramBadRequest:
-                ...
-    except TelegramBadRequest:
-        await message.answer("I can't delete this message")
 
 
 @admin_router.message(F.text == "Assortment")
