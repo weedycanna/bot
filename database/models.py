@@ -8,6 +8,7 @@ from sqlalchemy import (
     UniqueConstraint,
     func
 )
+from sqlalchemy.dialects.mysql import BIGINT
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -108,7 +109,7 @@ class CaptchaRecord(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(
-        ForeignKey("user.user_id", ondelete="CASCADE"), nullable=False, index=True
+        BIGINT, ForeignKey("user.user_id", ondelete="CASCADE"), nullable=False, index=True
     )
     captcha: Mapped[str] = mapped_column(String(50), nullable=False)
     timestamp: Mapped[str] = mapped_column(DateTime, default=func.now())
