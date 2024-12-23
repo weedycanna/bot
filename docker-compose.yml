@@ -21,10 +21,10 @@ services:
         max-file: "10"
 
 
-  ##   To enable postgres uncomment the following lines
+
   #  http://pgconfigurator.cybertec.at/ For Postgres Configuration
   # pg_database:
-  #  image: postgres:13-alpine
+  #  image: postgres:15-alpine
   #  ports:
   #    - "5439:5432" # Change if you like! 5439 is external to container
   #  restart: always
