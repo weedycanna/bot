@@ -29,7 +29,6 @@ async def orm_get_products(session: AsyncSession, category_id=None):
         products = result.scalars().all()
         return products
     except Exception as e:
-        print(f"Error in orm_get_products: {e}")
         return []
 
 

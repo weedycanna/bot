@@ -32,9 +32,9 @@ async def on_startup(bot):
 
 
     dp.include_router(admin_router)
+    dp.include_router(order_router)
     dp.include_router(user_private_router)
     dp.include_router(user_group_router)
-    dp.include_router(order_router)
 
 
     run_param = False

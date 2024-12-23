@@ -44,10 +44,8 @@ async def assortment(message: types.Message, session: AsyncSession):
 @admin_router.callback_query(F.data.startswith("category_"))
 async def starring_at_product(callback: types.CallbackQuery, session: AsyncSession):
     category_id = callback.data.split("_")[-1]
-    print(f"Callback triggered for category_id: {category_id}")
 
     products = await orm_get_products(session, int(category_id))
-    print(f"Products fetched for category {category_id}: {products}")
 
     for product in products:
         await callback.message.answer_photo(
@@ -70,7 +68,7 @@ async def delete_product(callback: types.CallbackQuery, session: AsyncSession):
     product_id = callback.data.split("_")[-1]
     await orm_delete_product(session, int(product_id))
 
-    animation_url = "h3oEjI6SIIHBdRxXI40/giphy.gif"
+    animation_url: str = "https://media.giphy.com/media/h3oEjI6SIIHBdRxXI40/giphy.gif"
     await callback.message.answer_animation(animation=animation_url)
 
     await callback.answer("Good deleted successfully!")

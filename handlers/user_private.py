@@ -32,7 +32,7 @@ captcha_checked = {}
 
 
 async def has_passed_captcha_recently(user_id: int, session: AsyncSession) -> bool:
-    two_weeks_ago = datetime.datetime.now() - datetime.timedelta(minutes=600)
+    two_weeks_ago = datetime.datetime.now() - datetime.timedelta(days=14)
     query = text(
         """
             SELECT 1 FROM captcha 
@@ -193,10 +193,11 @@ async def user_menu(
     await callback.answer()
 
 
-@user_private_router.message(Command(commands=["main", "menu", "cart", "about", "payment", "shipping"]))
+@user_private_router.message(Command(commands=["menu", "cart", "about", "payment", "shipping"]))
 @user_private_router.callback_query(MenuCallBack.filter())
 async def process_menu_command(update: Union[CallbackQuery, Message], session: AsyncSession):
     try:
+
         if isinstance(update, CallbackQuery):
             callback_data = MenuCallBack.unpack(update.data)
             menu_name = callback_data.menu_name
@@ -218,16 +219,31 @@ async def process_menu_command(update: Union[CallbackQuery, Message], session: A
             is_callback = False
 
         if not is_callback and menu_name == "menu":
-            categories = await orm_get_categories(session)
-            banner = await orm_get_banner(session, menu_name)
+            try:
+                categories = await orm_get_categories(session)
+                if not categories:
+                    await target.answer("Категории не найдены")
+                    return
 
-            await target.answer_photo(
-                photo=banner.image,
-                caption=f"<b>{banner.description}</b>\n\nВыберите категорию:",
-                reply_markup=get_user_catalog_btns(level=1, categories=categories),
-                parse_mode="HTML"
-            )
-            return
+                banner = await orm_get_banner(session, menu_name)
+
+                if banner and banner.image:
+                    await target.answer_photo(
+                        photo=banner.image,
+                        caption=f"<b>{banner.description}</b>\n\nВыберите категорию:",
+                        reply_markup=get_user_catalog_btns(level=1, categories=categories),
+                        parse_mode="HTML"
+                    )
+                else:
+                    await target.answer(
+                        text="Выберите категорию:",
+                        reply_markup=get_user_catalog_btns(level=1, categories=categories),
+                        parse_mode="HTML"
+                    )
+                return
+            except Exception as e:
+                await target.answer("Произошла ошибка при загрузке меню")
+                return
 
         image, keyboard = await get_menu_content(
             session=session,
@@ -254,7 +270,6 @@ async def process_menu_command(update: Union[CallbackQuery, Message], session: A
             )
 
     except Exception as e:
-        print(f"Error in menu handler: {e}")
         error_message = f"Произошла ошибка при открытии меню {menu_name}"
         if is_callback:
             await update.answer(error_message, show_alert=True)

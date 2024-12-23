@@ -1,5 +1,5 @@
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove, InlineKeyboardButton, \
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove, InlineKeyboardButton, \
     InlineKeyboardMarkup, InputMediaPhoto
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,6 +11,9 @@ from queries.order_queries import orm_get_user_orders
 from states.order_state import OrderState
 from aiogram import F, Router, types
 from aiogram.filters import Command
+
+from typing import Union
+from aiogram.types import CallbackQuery, Message
 
 from utils.utils import format_phone_number
 
@@ -123,7 +126,6 @@ async def confirm_order(callback: CallbackQuery, state: FSMContext, session: Asy
         await callback.answer("Order successfully created!", show_alert=True)
 
     except Exception as e:
-        print(f"Error creating order: {e}")
         await session.rollback()
         await callback.answer("Error creating order. Please try again.", show_alert=True)
         return
@@ -170,10 +172,6 @@ async def handle_edit(callback: CallbackQuery, state: FSMContext):
         await state.set_state(OrderState.address)
 
     await callback.answer()
-
-
-from typing import Union
-from aiogram.types import CallbackQuery, Message
 
 
 @order_router.message(Command("orders"))
@@ -227,7 +225,6 @@ async def process_orders_command(update: Union[CallbackQuery, Message], session:
             )
 
     except Exception as e:
-        print(f"Error in orders handler: {e}")
         if is_callback:
             await update.answer("Произошла ошибка при получении заказов", show_alert=True)
         else:
