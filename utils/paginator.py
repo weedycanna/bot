@@ -1,7 +1,5 @@
 import math
-from typing import List, Set, Tuple
-
-# Pagination class
+from typing import List, Tuple
 
 
 class Paginator:
