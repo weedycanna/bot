@@ -1,10 +1,25 @@
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import List
 
-from database.models import Order
+from asgiref.sync import sync_to_async
+
+from django_project.telegrambot.usersmanage.models import Order, TelegramUser
 
 
-async def orm_get_user_orders(session: AsyncSession, user_id: int):
-    query = select(Order).where(Order.user_id == user_id).order_by(Order.created.desc())
-    result = await session.execute(query)
-    return result.scalars().all()
+@sync_to_async
+def get_user_orders(user_id: int) -> List[Order]:
+    user = TelegramUser.objects.get(user_id=user_id)
+    return list(Order.objects.filter(user=user).order_by("-created_at"))
+
+
+@sync_to_async
+def add_order(
+    user_id: int, name: str, phone: str, address: str, status: str = "pending"
+) -> Order | None:
+    try:
+        user = TelegramUser.objects.get(user_id=user_id)
+        order = Order.objects.create(
+            user=user, name=name, phone=phone, address=address, status=status
+        )
+        return order
+    except Order.DoesNotExist:
+        return None

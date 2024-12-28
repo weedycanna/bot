@@ -1,56 +1,64 @@
-from sqlalchemy import select
-from sqlalchemy import delete
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
+from typing import List, Optional
 
-from database.models import Cart
+from asgiref.sync import sync_to_async
+from django.db import transaction
+from django.db.models import F
 
-
-async def orm_add_to_cart(session: AsyncSession, user_id: int, product_id: int) -> None:
-    query = (
-        select(Cart)
-        .where(Cart.user_id == user_id, Cart.product_id == product_id)
-        .options(joinedload(Cart.product))
-    )
-    cart = await session.execute(query)
-    cart = cart.scalars().first()
-    if cart:
-        cart.quantity += 1
-        await session.commit()
-        return cart
-    else:
-        session.add(Cart(user_id=user_id, product_id=product_id, quantity=1))
-        await session.commit()
+from django_project.telegrambot.usersmanage.models import Cart, TelegramUser
 
 
-async def orm_get_user_carts(session: AsyncSession, user_id):
-    query = select(Cart).filter(Cart.user_id == user_id).options(joinedload(Cart.product))
-    result = await session.execute(query)
-    return result.scalars().all()
+@sync_to_async
+def add_to_cart(user_id: int, product_id: int) -> Optional[Cart]:
+    try:
+        with transaction.atomic():
+            user = TelegramUser.objects.get(user_id=user_id)
+
+            cart_item, created = Cart.objects.get_or_create(
+                user=user, product_id=product_id, defaults={"quantity": 1}
+            )
+
+            if not created:
+                cart_item.quantity = F("quantity") + 1
+                cart_item.save()
+
+            cart_item.refresh_from_db()
+            return cart_item
+    except TelegramUser.DoesNotExist:
+        return None
+    except Cart.DoesNotExist:
+        return None
 
 
-async def orm_delete_from_cart(
-    session: AsyncSession, user_id: int, product_id: int
-) -> None:
-    query = delete(Cart).where(Cart.user_id == user_id, Cart.product_id == product_id)
-    await session.execute(query)
-    await session.commit()
+@sync_to_async
+def get_user_carts(user_id: int) -> List[Cart]:
+    user = TelegramUser.objects.get(user_id=user_id)
+    return list(Cart.objects.filter(user=user).select_related("product"))
 
 
-async def orm_reduce_product_in_cart(
-    session: AsyncSession, user_id: int, product_id: int
-) -> None:
-    query = select(Cart).where(Cart.user_id == user_id, Cart.product_id == product_id)
-    cart = await session.execute(query)
-    cart = cart.scalars().first()
+@sync_to_async
+def delete_from_cart(user_id: int, product_id: int) -> None:
+    user = TelegramUser.objects.get(user_id=user_id)
+    Cart.objects.filter(user=user, product_id=product_id).delete()
 
-    if not cart:
-        return
-    if cart.quantity > 1:
-        cart.quantity -= 1
-        await session.commit()
-        return True
-    else:
-        await orm_delete_from_cart(session, user_id, product_id)
-        await session.commit()
+
+@sync_to_async
+def clear_cart(user_id: int) -> None:
+    user = TelegramUser.objects.get(user_id=user_id)
+    Cart.objects.filter(user=user).delete()
+
+
+@sync_to_async
+def reduce_product_in_cart(user_id: int, product_id: int) -> bool:
+    try:
+        user = TelegramUser.objects.get(user_id=user_id)
+        cart_item = Cart.objects.get(user=user, product_id=product_id)
+
+        if cart_item.quantity > 1:
+            cart_item.quantity = F("quantity") - 1
+            cart_item.save()
+            return True
+        else:
+            cart_item.delete()
+            return False
+    except Cart.DoesNotExist:
         return False
