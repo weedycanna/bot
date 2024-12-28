@@ -1,0 +1,54 @@
+[
+{
+  "model": "usersmanage.product",
+  "pk": 1,
+  "fields": {
+    "created_at": "2024-12-25T23:44:53.126Z",
+    "updated_at": "2024-12-25T23:44:53.126Z",
+    "name": "PEPSI 0,5",
+    "description": "бутылка - 500 мл",
+    "price": "2.00",
+    "image": "products/PEPSI_0_RSqawhQ.5.jpg",
+    "category": 2
+  }
+},
+{
+  "model": "usersmanage.product",
+  "pk": 2,
+  "fields": {
+    "created_at": "2024-12-25T23:45:15.997Z",
+    "updated_at": "2024-12-25T23:45:15.997Z",
+    "name": "Green tea 0.5",
+    "description": "бутылка - 500 мл",
+    "price": "3.00",
+    "image": "products/62ba0d13fe7382e06680745851b974d7_ZL4V1Sq.jpg",
+    "category": 2
+  }
+},
+{
+  "model": "usersmanage.product",
+  "pk": 3,
+  "fields": {
+    "created_at": "2024-12-25T23:45:39.204Z",
+    "updated_at": "2024-12-25T23:45:39.204Z",
+    "name": "Chiccone pizza 30 см",
+    "description": "помидоры, сыр, грибы, томатная паста, огурцы, оливки",
+    "price": "11.00",
+    "image": "products/CHICCONE_pizza_q6jt7IB.jpg",
+    "category": 1
+  }
+},
+{
+  "model": "usersmanage.product",
+  "pk": 4,
+  "fields": {
+    "created_at": "2024-12-25T23:46:04.031Z",
+    "updated_at": "2024-12-25T23:46:04.031Z",
+    "name": "Quatro scaceni pizza 30 см",
+    "description": "помидоры, сыр, грибы, томатная паста, огурцы, ананасы",
+    "price": "14.00",
+    "image": "products/QUATRO_STACENI_pizza_HVsata0.jpg",
+    "category": 1
+  }
+}
+]
