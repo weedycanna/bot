@@ -1,9 +1,14 @@
 FROM python:3.12-slim
 
-WORKDIR /bot
+WORKDIR /app
 
-COPY requirements.txt /bot/
-RUN pip install -r /bot/requirements.txt
-COPY . /bot/
+COPY . /app
 
-CMD python3 /botn/app.py
+COPY fixtures /app/fixtures
+
+EXPOSE 8000
+
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+COPY . .
