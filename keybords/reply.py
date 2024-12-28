@@ -1,8 +1,6 @@
 from typing import Tuple
 
-from aiogram.types import (
-    KeyboardButton,
-)
+from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
 
@@ -28,4 +26,12 @@ def get_keyboard(
 
     return keyboard.adjust(*sizes).as_markup(
         resize_keyboard=True, input_field_placeholder=placeholder
+    )
+
+
+def get_back_button():
+    return ReplyKeyboardMarkup(
+        keyboard=[[KeyboardButton(text="⬅️ Back")]],
+        resize_keyboard=True,
+        one_time_keyboard=False,
     )

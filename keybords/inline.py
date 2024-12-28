@@ -1,7 +1,7 @@
 from typing import Dict, List, Tuple
 
 from aiogram.filters.callback_data import CallbackData
-from aiogram.types import InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
@@ -246,11 +246,3 @@ def get_callback_btns(*, btns: Dict[str, str], sizes: Tuple[int] = (2,)):
         keyboard.add(InlineKeyboardButton(text=text, callback_data=data))
 
     return keyboard.adjust(*sizes).as_markup()
-
-
-def get_back_button():
-    return ReplyKeyboardMarkup(
-        keyboard=[[KeyboardButton(text="⬅️ Back")]],
-        resize_keyboard=True,
-        one_time_keyboard=False
-    )
