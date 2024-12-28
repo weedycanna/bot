@@ -1,33 +1,53 @@
-from aiogram.types import InputMediaPhoto
-from sqlalchemy.ext.asyncio import AsyncSession
+import os
 
-from keybords.inline import (
-    get_products_btns,
-    get_user_cart,
-    get_user_catalog_btns,
-    get_user_main_btns,
-)
-from queries.admin_queries import orm_get_products
-from queries.banner_queries import orm_get_banner
-from queries.cart_queries import orm_reduce_product_in_cart, orm_delete_from_cart, orm_get_user_carts, orm_add_to_cart
-from queries.category_queries import orm_get_categories
+from aiogram.types import FSInputFile, InputMediaPhoto
+from django.conf import settings
+
+from keybords.inline import (get_products_btns, get_user_cart,
+                             get_user_catalog_btns, get_user_main_btns)
+from queries.banner_queries import get_banner
+from queries.cart_queries import (add_to_cart, delete_from_cart,
+                                  get_user_carts, reduce_product_in_cart)
+from queries.category_queries import get_categories
+from queries.products_queries import get_products
 from utils.paginator import Paginator
 
 
-async def main_menu(session: AsyncSession, level: int, menu_name: str):
-    banner = await orm_get_banner(session, menu_name)
-    image = InputMediaPhoto(media=str(banner.image), caption=banner.description)
-    kbds = get_user_main_btns(level=level)
+async def main_menu(level: int, menu_name: str):
 
+    banner = await get_banner(menu_name)
+
+    if banner and banner.image:
+        image_path = os.path.join(settings.MEDIA_ROOT, str(banner.image))
+        if os.path.exists(image_path):
+            image = InputMediaPhoto(
+                media=FSInputFile(image_path), caption=banner.description
+            )
+        else:
+            raise FileNotFoundError(f"Banner image not found: {image_path}")
+    else:
+        raise ValueError("Banner not found or has no image")
+
+    kbds = get_user_main_btns(level=level)
     return image, kbds
 
 
-async def catalog(session: AsyncSession, level: int, menu_name: str):
+async def catalog(level: int, menu_name: str):
 
-    banner = await orm_get_banner(session, menu_name)
-    image = InputMediaPhoto(media=str(banner.image), caption=banner.description)
+    banner = await get_banner(menu_name)
 
-    categories = await orm_get_categories(session)
+    if banner and banner.image:
+        image_path = os.path.join(settings.MEDIA_ROOT, str(banner.image))
+        if os.path.exists(image_path):
+            image = InputMediaPhoto(
+                media=FSInputFile(image_path), caption=banner.description
+            )
+        else:
+            raise FileNotFoundError(f"Banner image not found: {image_path}")
+    else:
+        raise ValueError("Banner not found or has no image")
+
+    categories = await get_categories()
     kbds = get_user_catalog_btns(level=level, categories=categories)
 
     return image, kbds
@@ -44,19 +64,21 @@ async def pages(paginator: Paginator):
     return btns
 
 
-
-async def products(session: AsyncSession, level: int, category: int, page: int):
-    products = await orm_get_products(session, category_id=category)
+async def products(level: int, category: int, page: int):
+    products = await get_products(category_id=category)
 
     paginator = Paginator(products, page)
     product = paginator.get_page()[0]
 
-    image = InputMediaPhoto(
-        media=product.image,
-        caption=f"<strong>{product.name}\
+    if product.image:
+        image = InputMediaPhoto(
+            media=FSInputFile(product.image.path),
+            caption=f"<strong>{product.name}\
                 </strong>\n{product.description}\nPrice: {round(product.price, 2)}\n\
                 <strong>Good {paginator.page} of {paginator.pages}</strong>",
-    )
+        )
+    else:
+        raise ValueError("Product has no image")
 
     pagination_btns = await pages(paginator)
 
@@ -71,26 +93,33 @@ async def products(session: AsyncSession, level: int, category: int, page: int):
     return image, kbds
 
 
-async def carts(session, level, menu_name, page, user_id, product_id):
-
+async def carts(level, menu_name, page, user_id, product_id):
     if menu_name == "delete":
-        await orm_delete_from_cart(session, user_id, product_id)
+        await delete_from_cart(user_id, product_id)
         if page > 1:
             page -= 1
     elif menu_name == "decrement":
-        is_cart = await orm_reduce_product_in_cart(session, user_id, product_id)
+        is_cart = await reduce_product_in_cart(user_id, product_id)
         if page > 1 and not is_cart:
             page -= 1
     elif menu_name == "increment":
-        await orm_add_to_cart(session, user_id, product_id)
+        await add_to_cart(user_id, product_id)
 
-    carts = await orm_get_user_carts(session, user_id)
+    carts = await get_user_carts(user_id)
 
     if not carts:
-        banner = await orm_get_banner(session, "cart")
-        image = InputMediaPhoto(
-            media=banner.image, caption=f"<strong>{banner.description}</strong>"
-        )
+        banner = await get_banner("cart")
+        if banner and banner.image:
+            image_path = os.path.join(settings.MEDIA_ROOT, str(banner.image))
+            if os.path.exists(image_path):
+                image = InputMediaPhoto(
+                    media=FSInputFile(image_path),
+                    caption=f"<strong>{banner.description}</strong>",
+                )
+            else:
+                raise FileNotFoundError(f"Banner image not found: {image_path}")
+        else:
+            raise ValueError("Banner not found or has no image")
 
         kbds = get_user_cart(
             level=level,
@@ -101,18 +130,25 @@ async def carts(session, level, menu_name, page, user_id, product_id):
 
     else:
         paginator = Paginator(carts, page=page)
-
         cart = paginator.get_page()[0]
 
         cart_price = round(cart.quantity * cart.product.price, 2)
         total_price = round(
             sum(cart.quantity * cart.product.price for cart in carts), 2
         )
-        image = InputMediaPhoto(
-            media=cart.product.image,
-            caption=f"<strong>{cart.product.name}</strong>\n{cart.product.price}$ x {cart.quantity} = {cart_price}$\
-                    \nGood {paginator.page} из {paginator.pages} in cart.\nTotal price in cart {total_price}",
-        )
+
+        if cart.product.image:
+            image_path = os.path.join(settings.MEDIA_ROOT, str(cart.product.image))
+            if os.path.exists(image_path):
+                image = InputMediaPhoto(
+                    media=FSInputFile(image_path),
+                    caption=f"<strong>{cart.product.name}</strong>\n{cart.product.price}$ x {cart.quantity} = {cart_price}$\
+                            \nGood {paginator.page} из {paginator.pages} in cart.\nTotal price in cart {total_price}",
+                )
+            else:
+                raise FileNotFoundError(f"Product image not found: {image_path}")
+        else:
+            raise ValueError("Product has no image")
 
         pagination_btns = await pages(paginator)
 
@@ -127,7 +163,6 @@ async def carts(session, level, menu_name, page, user_id, product_id):
 
 
 async def get_menu_content(
-    session: AsyncSession,
     level: int,
     menu_name: str,
     category: int | None = None,
@@ -137,13 +172,10 @@ async def get_menu_content(
 ):
 
     if level == 0:
-        return await main_menu(session, level, menu_name)
+        return await main_menu(level, menu_name)
     elif level == 1:
-        return await catalog(session, level, menu_name)
+        return await catalog(level, menu_name)
     elif level == 2:
-        return await products(session, level, category, page)
+        return await products(level, category, page)
     elif level == 3:
-        return await carts(session, level, menu_name, page, user_id, product_id)
-
-
-
+        return await carts(level, menu_name, page, user_id, product_id)

@@ -38,14 +38,18 @@ async def clear_group(message: types.Message, bot: Bot) -> None:
         is_private = message.chat.type == "private"
 
         if not is_private:
-            chat_member = await bot.get_chat_member(message.chat.id, message.from_user.id)
-            if chat_member.status not in ['administrator', 'creator']:
-                await message.answer("Команда доступна только администраторам группы")
+            chat_member = await bot.get_chat_member(
+                message.chat.id, message.from_user.id
+            )
+            if chat_member.status not in ["administrator", "creator"]:
+                await message.answer(
+                    "The command is only available to group administrators."
+                )
                 return
 
             bot_member = await bot.get_chat_member(message.chat.id, (await bot.me()).id)
-            if bot_member.status not in ['administrator', 'creator']:
-                await message.answer("Бот должен быть администратором группы для удаления сообщений")
+            if bot_member.status not in ["administrator", "creator"]:
+                await message.answer("Bot must be a group admin to delete messages")
                 return
 
         deleted_count = 0
@@ -58,7 +62,7 @@ async def clear_group(message: types.Message, bot: Bot) -> None:
                 continue
 
         if deleted_count > 0:
-            notification = await message.answer(f"Удалено {deleted_count} сообщений!")
+            notification = await message.answer(f"Deleted {deleted_count} messages!")
             await asyncio.sleep(3)
             try:
                 await notification.delete()
@@ -66,10 +70,7 @@ async def clear_group(message: types.Message, bot: Bot) -> None:
                 pass
 
     except ValueError:
-        await message.answer("Неверный формат команды. Используйте: /clear или /clear <число>")
-    except Exception as e:
-        await message.answer(f"Произошла ошибка: {str(e)}")
-
+        await message.answer("Invalid command format. Use: /clean or /clear <number>")
 
 
 @user_group_router.edited_message()
@@ -80,11 +81,7 @@ async def cleaner(message: types.Message) -> None:
         last_name = message.from_user.last_name or ""
         full_name = f"{first_name} {last_name}"
 
-        await message.answer(
-            f"{full_name}, keeps order in the chat! 🤬"
-        )
+        await message.answer(f"{full_name}, keeps order in the chat! 🤬")
 
         await message.delete()
         await message.chat.ban(message.from_user.id)
-
-
