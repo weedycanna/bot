@@ -1,8 +1,14 @@
 from typing import List
 
 from asgiref.sync import sync_to_async
+from django.db import transaction
 
-from django_project.telegrambot.usersmanage.models import Order, TelegramUser
+from django_project.telegrambot.usersmanage.models import (
+    Cart,
+    Order,
+    OrderItem,
+    TelegramUser,
+)
 
 
 @sync_to_async
@@ -23,3 +29,45 @@ def add_order(
         return order
     except Order.DoesNotExist:
         return None
+
+
+@sync_to_async
+def add_order_with_items(
+    user_id: int,
+    name: str,
+    phone: str,
+    address: str,
+    status: str,
+    cart_items: List[Cart],
+) -> Order:
+    user = TelegramUser.objects.get(user_id=user_id)
+    try:
+        with transaction.atomic():
+            order = Order.objects.create(
+                user=user, name=name, phone=phone, address=address, status=status
+            )
+
+            for cart_item in cart_items:
+                OrderItem.objects.create(
+                    order=order,
+                    product=cart_item.product,
+                    quantity=cart_item.quantity,
+                    price=cart_item.product.price,
+                )
+
+            return order
+    except (OrderItem.DoesNotExist, Order.DoesNotExist):
+        raise
+
+
+@sync_to_async
+def get_order_by_id(order_id: str) -> Order:
+    return Order.objects.filter(id=order_id).first()
+
+
+@sync_to_async
+def get_order_items(order_id: str) -> List[OrderItem]:
+    items = list(
+        OrderItem.objects.filter(order_id=order_id).select_related("product").all()
+    )
+    return items

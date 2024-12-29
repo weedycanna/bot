@@ -30,6 +30,13 @@ def add_to_cart(user_id: int, product_id: int) -> Optional[Cart]:
 
 
 @sync_to_async
+def get_cart_items(user_id: int) -> List[Cart]:
+    return list(
+        Cart.objects.filter(user__user_id=user_id).select_related("product").all()
+    )
+
+
+@sync_to_async
 def get_user_carts(user_id: int) -> List[Cart]:
     user = TelegramUser.objects.get(user_id=user_id)
     return list(Cart.objects.filter(user=user).select_related("product"))
