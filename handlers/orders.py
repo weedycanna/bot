@@ -4,18 +4,31 @@ from typing import Union
 from aiogram import F, Router, types
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from aiogram.types import (CallbackQuery, FSInputFile, InlineKeyboardButton,
-                           InlineKeyboardMarkup, InputMediaPhoto,
-                           KeyboardButton, Message, ReplyKeyboardMarkup,
-                           ReplyKeyboardRemove)
+from aiogram.types import (
+    CallbackQuery,
+    FSInputFile,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    InputMediaPhoto,
+    KeyboardButton,
+    Message,
+    ReplyKeyboardMarkup,
+    ReplyKeyboardRemove,
+)
 from django.conf import settings
 
+from callbacks.callbacks import OrderDetailCallBack
 from filters.chat_types import ChatTypeFilter
-from keybords.inline import MenuCallBack, get_user_cart, get_user_main_btns
+from keybords.inline import MenuCallBack, get_order_details_keyboard, get_user_main_btns
 from keybords.reply import get_back_button
 from queries.banner_queries import get_banner
-from queries.cart_queries import clear_cart
-from queries.order_queries import add_order, get_user_orders
+from queries.cart_queries import clear_cart, get_cart_items
+from queries.order_queries import (
+    add_order_with_items,
+    get_order_by_id,
+    get_order_items,
+    get_user_orders,
+)
 from states.order_state import OrderState
 from utils.utils import format_phone_number
 
@@ -116,21 +129,33 @@ async def confirm_order(callback: CallbackQuery, state: FSMContext):
         return
 
     try:
+        # Получаем данные пользователя из state
         user_data = await state.get_data()
 
-        await add_order(
+        # Получаем товары из корзины
+        cart_items = await get_cart_items(callback.from_user.id)
+
+        if not cart_items:
+            await callback.answer("Your cart is empty!", show_alert=True)
+            return
+
+        # Создаем заказ с товарами из корзины
+        await add_order_with_items(
             user_id=callback.from_user.id,
             name=user_data.get("name", ""),
             phone=user_data.get("phone", ""),
             address=user_data.get("address", ""),
             status="pending",
+            cart_items=cart_items,
         )
 
+        # Очищаем корзину после создания заказа
         await clear_cart(user_id=callback.from_user.id)
 
         await callback.message.edit_reply_markup(reply_markup=None)
         await callback.message.answer(
-            "Your order has been confirmed! ✅",
+            "Your order has been confirmed! ✅\n"
+            "You can view your order details in the Orders menu.",
             reply_markup=get_user_main_btns(level=1),
         )
 
@@ -139,6 +164,9 @@ async def confirm_order(callback: CallbackQuery, state: FSMContext):
 
     except Exception as e:
         print(f"Error creating order: {e}")
+        import traceback
+
+        print(traceback.format_exc())
         await callback.answer(
             "Error creating order. Please try again.", show_alert=True
         )
@@ -222,34 +250,12 @@ async def process_orders_command(update: Union[CallbackQuery, Message]):
             raise FileNotFoundError(f"Banner image not found: {image_path}")
 
         if not orders:
-            media = InputMediaPhoto(
-                media=FSInputFile(image_path),
-                caption=f"<strong>{banner.description}</strong>",
-                parse_mode="HTML"
-            )
-
-            kbds = get_user_cart(
-                level=1,
-                page=None,
-                pagination_btns=None,
-                product_id=None,
-            )
-
-            if is_callback:
-                await target.edit_media(media=media, reply_markup=kbds)
-                await update.answer()
-            else:
-                await target.answer_photo(
-                    photo=FSInputFile(image_path),
-                    caption=f"<strong>{banner.description}</strong>",
-                    reply_markup=kbds,
-                    parse_mode="HTML",
-                )
+            pass
         else:
             text = ""
             for order in orders:
                 text += (
-                    f"🔸 Заказ {order.id}\n"
+                    f"🔸 Заказ {str(order.id)[:8]}\n"
                     f"👤 Имя: {order.name}\n"
                     f"📦 Статус: {order.status}\n"
                     f"📍 Адрес: {order.address}\n"
@@ -260,30 +266,166 @@ async def process_orders_command(update: Union[CallbackQuery, Message]):
             media = InputMediaPhoto(
                 media=FSInputFile(image_path),
                 caption=f"<strong>{banner.description}</strong>\n\n{text}",
-                parse_mode="HTML"
+                parse_mode="HTML",
             )
 
+            keyboard = get_order_details_keyboard(orders)
+
             if is_callback:
-                await target.edit_media(
-                    media=media,
-                    reply_markup=get_user_main_btns(level=1)
-                )
+                await target.edit_media(media=media, reply_markup=keyboard)
                 await update.answer()
             else:
                 await target.answer_photo(
                     photo=FSInputFile(image_path),
                     caption=f"<strong>{banner.description}</strong>\n\n{text}",
-                    reply_markup=get_user_main_btns(level=1),
+                    reply_markup=keyboard,
                     parse_mode="HTML",
                 )
 
     except Exception as e:
         if is_callback:
             await update.answer(
-                "Произошла ошибка при получении заказов",
-                show_alert=True
+                "Произошла ошибка при получении заказов", show_alert=True
             )
         else:
-            await target.answer(
-                "Произошла ошибка при получении заказов. "
+            await target.answer("Произошла ошибка при получении заказов. ")
+
+
+@order_router.message(Command("orders"))
+@order_router.callback_query(MenuCallBack.filter(F.menu_name == "orders"))
+async def process_orders_command(update: Union[CallbackQuery, Message]):
+    try:
+        if isinstance(update, CallbackQuery):
+            user_id = update.from_user.id
+            target = update.message
+            is_callback = True
+        else:
+            user_id = update.from_user.id
+            target = update
+            is_callback = False
+
+        orders = await get_user_orders(user_id)
+
+        banner = await get_banner("orders")
+        if not banner:
+            raise ValueError("Banner not found")
+
+        if not banner.image:
+            raise ValueError("Banner has no image")
+
+        image_path = os.path.join(settings.MEDIA_ROOT, str(banner.image))
+        if not os.path.exists(image_path):
+            raise FileNotFoundError(f"Banner image not found: {image_path}")
+
+        if not orders:
+            pass
+        else:
+            text = ""
+            for order in orders:
+                text += (
+                    f"🔸 Заказ {str(order.id)[:8]}\n"
+                    f"👤 Имя: {order.name}\n"
+                    f"📦 Статус: {order.status}\n"
+                    f"📍 Адрес: {order.address}\n"
+                    f"📱 Телефон: {order.phone}\n"
+                    f"-------------------\n"
+                )
+
+            media = InputMediaPhoto(
+                media=FSInputFile(image_path),
+                caption=f"<strong>{banner.description}</strong>\n\n{text}",
+                parse_mode="HTML",
             )
+
+            keyboard = get_order_details_keyboard(orders)
+
+            if is_callback:
+                await target.edit_media(media=media, reply_markup=keyboard)
+                await update.answer()
+            else:
+                await target.answer_photo(
+                    photo=FSInputFile(image_path),
+                    caption=f"<strong>{banner.description}</strong>\n\n{text}",
+                    reply_markup=keyboard,
+                    parse_mode="HTML",
+                )
+
+    except Exception as e:
+        if is_callback:
+            await update.answer(
+                "Произошла ошибка при получении заказов", show_alert=True
+            )
+        else:
+            await target.answer("Произошла ошибка при получении заказов. ")
+
+
+@order_router.callback_query(OrderDetailCallBack.filter())
+async def process_order_detail(
+    callback: CallbackQuery, callback_data: OrderDetailCallBack
+):
+    try:
+        order = await get_order_by_id(callback_data.order_id)
+        if not order:
+            await callback.answer("Заказ не найден", show_alert=True)
+            return
+
+        items = await get_order_items(order.id)
+
+        if not items:
+            await callback.answer("У заказа нет товаров", show_alert=True)
+            return
+
+        total_sum = sum(float(item.price) * item.quantity for item in items)
+
+        text = (
+            f"📋 Order Detail {str(order.id)[:8]}\n"
+            f"📅 Дата создания: {order.created_at.strftime('%d.%m.%Y %H:%M')}\n"
+            f"👤 First name: {order.name}\n"
+            f"📦 Status: {order.status}\n"
+            f"📍 Address: {order.address}\n"
+            f"📱 Phone: {order.phone}\n\n"
+            f"📝 Items in order:\n"
+        )
+
+        for item in items:
+            text += (
+                f" {item.product.name}\n"
+                f" Quantity: {item.quantity} \n"
+                f" Price: {item.price:.2f} 💵\n"
+                f"-------------------\n"
+            )
+
+        text += f"\n💰 Total price: {total_sum:.2f}"
+
+        keyboard = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text="◀️ Назад к заказам",
+                        callback_data=MenuCallBack(menu_name="orders", level=1).pack(),
+                    )
+                ]
+            ]
+        )
+
+        banner = await get_banner("orders")
+        if banner and banner.image:
+            image_path = os.path.join(settings.MEDIA_ROOT, str(banner.image))
+
+            await callback.message.edit_media(
+                media=InputMediaPhoto(
+                    media=FSInputFile(image_path), caption=text, parse_mode="HTML"
+                ),
+                reply_markup=keyboard,
+            )
+        else:
+            await callback.message.edit_text(
+                text=text, parse_mode="HTML", reply_markup=keyboard
+            )
+
+        await callback.answer()
+
+    except Exception:
+        await callback.answer(
+            "Произошла ошибка при получении деталей заказа", show_alert=True
+        )
