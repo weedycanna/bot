@@ -1,8 +1,17 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import (AdminUser, Banner, CaptchaRecord, Cart, Category, Order,
-                     Product, TelegramUser)
+from .models import (
+    AdminUser,
+    Banner,
+    CaptchaRecord,
+    Cart,
+    Category,
+    Order,
+    OrderItem,
+    Product,
+    TelegramUser,
+)
 
 
 @admin.register(AdminUser)
@@ -88,9 +97,13 @@ class TelegramUserAdmin(admin.ModelAdmin):
 @admin.register(Cart)
 class CartAdmin(admin.ModelAdmin):
     list_display = ("id", "user", "product", "quantity", "created_at", "updated_at")
-    search_fields = ("user__first_name", "user__last_name", "product__name")
+    search_fields = ("user__first_name", "product__name")
     list_filter = ("created_at", "updated_at")
     raw_id_fields = ("user", "product")
+
+
+class OrderItemAdmin(admin.TabularInline):
+    model = OrderItem
 
 
 @admin.register(Order)
@@ -105,9 +118,9 @@ class OrderAdmin(admin.ModelAdmin):
         "created_at",
         "updated_at",
     )
+    inlines = [OrderItemAdmin]
     search_fields = ("id", "name", "address", "phone", "status")
     list_filter = ("status", "created_at", "updated_at")
-    raw_id_fields = ("user",)
 
 
 @admin.register(CaptchaRecord)
