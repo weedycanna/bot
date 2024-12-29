@@ -1,5 +1,4 @@
 import uuid
-from typing import Tuple
 
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import AbstractUser, PermissionsMixin
@@ -7,7 +6,6 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
-from phonenumbers import PhoneNumberFormat, format_number, parse
 
 
 ORDER_STATUS = (
@@ -16,7 +14,6 @@ ORDER_STATUS = (
     ("completed", "Completed"),
     ("cancelled", "Cancelled"),
 )
-
 
 
 class TimeBasedModel(models.Model):
@@ -101,11 +98,6 @@ class TelegramUser(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
-    def format_phone_number(self) -> str | None:
-        if self.phone_number:
-            parsed_number = parse(str(self.phone_number), None)
-            return format_number(parsed_number, PhoneNumberFormat.INTERNATIONAL)
-        return None
 
     def __str__(self):
         return f"{self.first_name}".strip()
