@@ -129,17 +129,14 @@ async def confirm_order(callback: CallbackQuery, state: FSMContext):
         return
 
     try:
-        # Получаем данные пользователя из state
         user_data = await state.get_data()
 
-        # Получаем товары из корзины
         cart_items = await get_cart_items(callback.from_user.id)
 
         if not cart_items:
             await callback.answer("Your cart is empty!", show_alert=True)
             return
 
-        # Создаем заказ с товарами из корзины
         await add_order_with_items(
             user_id=callback.from_user.id,
             name=user_data.get("name", ""),
@@ -149,7 +146,6 @@ async def confirm_order(callback: CallbackQuery, state: FSMContext):
             cart_items=cart_items,
         )
 
-        # Очищаем корзину после создания заказа
         await clear_cart(user_id=callback.from_user.id)
 
         await callback.message.edit_reply_markup(reply_markup=None)
