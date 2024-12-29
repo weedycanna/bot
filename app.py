@@ -38,11 +38,11 @@ async def on_startup(bot):
     dp.include_router(user_private_router)
     dp.include_router(user_group_router)
 
-    call_command("migrate")
-
-    call_command("loaddata", "fixtures/categories.json")
-    call_command("loaddata", "fixtures/products.json")
-    call_command("loaddata", "fixtures/banners.json")
+    # call_command("migrate")
+    #
+    # call_command("loaddata", "fixtures/categories.json")
+    # call_command("loaddata", "fixtures/products.json")
+    # call_command("loaddata", "fixtures/banners.json")
 
 
 async def on_shutdown(bot):

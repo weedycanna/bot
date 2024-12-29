@@ -1,16 +1,8 @@
 from typing import Dict, List, Tuple
-
-from aiogram.filters.callback_data import CallbackData
-from aiogram.types import InlineKeyboardButton
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-
-class MenuCallBack(CallbackData, prefix="menu"):
-    level: int
-    menu_name: str
-    category: int | None = None
-    page: int = 1
-    product_id: int | None = None
+from callbacks.callbacks import MenuCallBack, OrderDetailCallBack
 
 
 def get_user_main_btns(*, level: int, sizes: Tuple[int] = (2,)):
@@ -64,7 +56,7 @@ def get_user_cart(
     page: int | None,
     pagination_btns: dict | None,
     product_id: int | None,
-    sizes: tuple[int] = (3,)
+    sizes: tuple[int] = (3,),
 ):
 
     keyboard = InlineKeyboardBuilder()
@@ -179,7 +171,7 @@ def get_products_btns(
     page: int,
     pagination_btns: dict,
     product_id: int,
-    sizes: Tuple[int] = (2, 1)
+    sizes: Tuple[int] = (2, 1),
 ):
     keyboard = InlineKeyboardBuilder()
 
@@ -246,3 +238,28 @@ def get_callback_btns(*, btns: Dict[str, str], sizes: Tuple[int] = (2,)):
         keyboard.add(InlineKeyboardButton(text=text, callback_data=data))
 
     return keyboard.adjust(*sizes).as_markup()
+
+
+def get_order_details_keyboard(orders):
+
+    keyboard = []
+    for order in orders:
+        keyboard.append(
+            [
+                InlineKeyboardButton(
+                    text=f"📋 Детали заказа #{str(order.id)[:8]}",
+                    callback_data=OrderDetailCallBack(order_id=str(order.id)).pack(),
+                )
+            ]
+        )
+
+    keyboard.append(
+        [
+            InlineKeyboardButton(
+                text="◀️ Назад",
+                callback_data=MenuCallBack(menu_name="main", level=1).pack(),
+            )
+        ]
+    )
+
+    return InlineKeyboardMarkup(inline_keyboard=keyboard)

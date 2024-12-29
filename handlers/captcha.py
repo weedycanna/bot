@@ -7,8 +7,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from django_project.telegrambot.usersmanage.models import CaptchaRecord
 from filters.chat_types import ChatTypeFilter
 from handlers.start_cmd import start_cmd
-from queries.captcha_queries import (has_passed_captcha_recently,
-                                     mark_captcha_passed)
+from queries.captcha_queries import has_passed_captcha_recently, mark_captcha_passed
 from queries.user_queries import add_user, get_user
 
 captcha_router = Router()

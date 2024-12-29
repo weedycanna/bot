@@ -4,8 +4,11 @@ import phonenumbers
 from aiogram import Router, types
 from aiogram.filters import CommandStart, StateFilter
 from aiogram.fsm.context import FSMContext
-from aiogram.types import (InlineKeyboardButton, InlineKeyboardMarkup,
-                           ReplyKeyboardRemove)
+from aiogram.types import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    ReplyKeyboardRemove,
+)
 from phonenumbers import NumberParseException
 
 from filters.chat_types import ChatTypeFilter

@@ -1,5 +1,4 @@
 import os
-from tkinter import Image
 
 from aiogram import F, Router, types
 from aiogram.filters import Command, StateFilter, or_f
@@ -12,8 +11,13 @@ from keybords.inline import get_callback_btns
 from keybords.reply import get_keyboard
 from queries.banner_queries import change_banner_image, get_info_pages
 from queries.category_queries import get_categories
-from queries.products_queries import (add_product, delete_product, get_product,
-                                      get_products, update_product)
+from queries.products_queries import (
+    add_product,
+    delete_product,
+    get_product,
+    get_products,
+    update_product,
+)
 from states.banner_state import AddBanner
 from states.product_state import AddProduct
 
@@ -59,7 +63,7 @@ async def starring_at_product(callback: types.CallbackQuery):
                         await callback.message.answer_photo(
                             photo=photo,
                             caption=f"<strong>{product.name}</strong>\n{product.description}\n"
-                                    f"Price: {round(product.price, 2)}💵",
+                            f"Price: {round(product.price, 2)}💵",
                             reply_markup=get_callback_btns(
                                 btns={
                                     "Delete": f"delete_{product.id}",
