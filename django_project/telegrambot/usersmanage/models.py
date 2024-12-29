@@ -1,4 +1,5 @@
 import uuid
+from typing import Tuple
 
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import AbstractUser, PermissionsMixin
@@ -7,6 +8,15 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
 from phonenumbers import PhoneNumberFormat, format_number, parse
+
+
+ORDER_STATUS = (
+    ("pending", "Pending"),
+    ("processing", "Processing"),
+    ("completed", "Completed"),
+    ("cancelled", "Cancelled"),
+)
+
 
 
 class TimeBasedModel(models.Model):
@@ -125,7 +135,7 @@ class Order(TimeBasedModel):
     name = models.CharField(max_length=150)
     address = models.TextField()
     phone = PhoneNumberField()
-    status = models.CharField(max_length=25, default="pending")
+    status = models.CharField(max_length=25, choices=ORDER_STATUS, default="pending")
 
     class Meta:
         verbose_name_plural: str = "Orders"
