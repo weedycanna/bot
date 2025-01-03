@@ -1,3 +1,4 @@
+import logging
 import os
 
 from aiogram import F, Router, types
@@ -84,13 +85,13 @@ async def starring_at_product(callback: types.CallbackQuery):
                             sizes=(2,),
                         ),
                     )
-            except Exception:
+            except (FileNotFoundError, AttributeError, OSError, TypeError):
                 continue
 
         await callback.answer()
         await callback.message.answer("Ok, list of products ⏫")
 
-    except Exception:
+    except (FileNotFoundError, AttributeError, OSError, TypeError):
         await callback.message.answer("Error occurred while processing products")
         await callback.answer()
 
@@ -134,7 +135,7 @@ async def add_banner(message: types.Message, state: FSMContext) -> None:
     await state.clear()
 
 
-@admin_router.message(AddBanner.image)
+@admin_router.message(AddBanner.image, or_f(F.photo, F.text == "."))
 async def not_correct_add_banner(message: types.Message) -> None:
     await message.answer("You write wrong data, please load the image of the banner:")
 
@@ -165,10 +166,10 @@ async def get_add_product(message: types.Message, state: FSMContext):
 
 @admin_router.message(StateFilter("*"), Command("cancel"))
 @admin_router.message(StateFilter("*"), F.text.casefold() == "cancel")
-async def cancel_handler(message: types.Message, state: FSMContext):
-    current_state = await state.get_data()
-    if current_state is None:
-        return
+async def cancel_handler(message: types.Message, state: FSMContext) -> None:
+    current_state = await state.get_state()
+    logging.info(f"Current state: {current_state}")
+
     if AddProduct.product_for_change:
         AddProduct.product_for_change = None
 
@@ -330,7 +331,7 @@ async def add_image(message: types.Message, state: FSMContext):
         await state.clear()
         AddProduct.product_for_change = None
 
-    except Exception:
+    except (FileNotFoundError, AttributeError, OSError, TypeError):
         await message.answer(
             "Error occurred. Try again or type 'cancel'", reply_markup=ADMIN_KB
         )
