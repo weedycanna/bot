@@ -158,11 +158,8 @@ async def confirm_order(callback: CallbackQuery, state: FSMContext):
         await state.clear()
         await callback.answer("Order successfully created!", show_alert=True)
 
-    except Exception as e:
-        print(f"Error creating order: {e}")
-        import traceback
+    except (FileNotFoundError, AttributeError, OSError, TypeError):
 
-        print(traceback.format_exc())
         await callback.answer(
             "Error creating order. Please try again.", show_alert=True
         )
@@ -278,13 +275,10 @@ async def process_orders_command(update: Union[CallbackQuery, Message]):
                     parse_mode="HTML",
                 )
 
-    except Exception as e:
-        if is_callback:
+    except (FileNotFoundError, AttributeError, OSError, TypeError):
             await update.answer(
-                "Произошла ошибка при получении заказов", show_alert=True
+                "There was an error retrieving order details", show_alert=True
             )
-        else:
-            await target.answer("Произошла ошибка при получении заказов. ")
 
 
 @order_router.message(Command("orders"))
@@ -319,11 +313,11 @@ async def process_orders_command(update: Union[CallbackQuery, Message]):
             text = ""
             for order in orders:
                 text += (
-                    f"🔸 Заказ {str(order.id)[:8]}\n"
-                    f"👤 Имя: {order.name}\n"
-                    f"📦 Статус: {order.status}\n"
-                    f"📍 Адрес: {order.address}\n"
-                    f"📱 Телефон: {order.phone}\n"
+                    f"🔸 Order {str(order.id)[:8]}\n"
+                    f"👤 Name: {order.name}\n"
+                    f"📦 Status: {order.status}\n"
+                    f"📍 Address: {order.address}\n"
+                    f"📱 Phone: {order.phone}\n"
                     f"-------------------\n"
                 )
 
@@ -346,13 +340,10 @@ async def process_orders_command(update: Union[CallbackQuery, Message]):
                     parse_mode="HTML",
                 )
 
-    except Exception as e:
-        if is_callback:
+    except (FileNotFoundError, AttributeError, OSError, TypeError):
             await update.answer(
-                "Произошла ошибка при получении заказов", show_alert=True
+                "There was an error retrieving order details", show_alert=True
             )
-        else:
-            await target.answer("Произошла ошибка при получении заказов. ")
 
 
 @order_router.callback_query(OrderDetailCallBack.filter())
@@ -362,25 +353,25 @@ async def process_order_detail(
     try:
         order = await get_order_by_id(callback_data.order_id)
         if not order:
-            await callback.answer("Заказ не найден", show_alert=True)
+            await callback.answer("Order not found", show_alert=True)
             return
 
         items = await get_order_items(order.id)
 
         if not items:
-            await callback.answer("У заказа нет товаров", show_alert=True)
+            await callback.answer("The order has no products", show_alert=True)
             return
 
         total_sum = sum(float(item.price) * item.quantity for item in items)
 
         text = (
             f"📋 Order Detail {str(order.id)[:8]}\n"
-            f"📅 Дата создания: {order.created_at.strftime('%d.%m.%Y %H:%M')}\n"
+            f"📅 Creation date: {order.created_at.strftime('%d.%m.%Y %H:%M')}\n"
             f"👤 First name: {order.name}\n"
             f"📦 Status: {order.status}\n"
             f"📍 Address: {order.address}\n"
             f"📱 Phone: {order.phone}\n\n"
-            f"📝 Items in order:\n"
+            f"📝 Items in order:\n\n"
         )
 
         for item in items:
@@ -397,7 +388,7 @@ async def process_order_detail(
             inline_keyboard=[
                 [
                     InlineKeyboardButton(
-                        text="◀️ Назад к заказам",
+                        text="◀️ Back to orders",
                         callback_data=MenuCallBack(menu_name="orders", level=1).pack(),
                     )
                 ]
@@ -421,7 +412,7 @@ async def process_order_detail(
 
         await callback.answer()
 
-    except Exception:
+    except (FileNotFoundError, AttributeError, OSError, TypeError):
         await callback.answer(
-            "Произошла ошибка при получении деталей заказа", show_alert=True
+            "There was an error retrieving order details", show_alert=True
         )

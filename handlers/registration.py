@@ -143,7 +143,7 @@ async def process_phone(message: types.Message, state: FSMContext):
             "❌ Invalid phone number format. Please enter the number in international format "
             "(for example, +79123456789):"
         )
-    except Exception:
+    except ValueError:
         await message.answer(
             "❌ An error occurred during registration. Please try again later."
         )

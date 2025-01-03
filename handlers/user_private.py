@@ -174,12 +174,9 @@ async def process_menu_command(update: Union[CallbackQuery, Message]):
                 parse_mode="HTML",
             )
 
-    except Exception as e:
+    except (FileNotFoundError, AttributeError, OSError, TypeError):
         error_message = f"Error opening menu {menu_name}"
-        if is_callback:
-            await update.answer(error_message, show_alert=True)
-        else:
-            await target.answer(error_message)
+        await update.answer(error_message, show_alert=True)
 
 
 @user_private_router.message(Command("clear"))
