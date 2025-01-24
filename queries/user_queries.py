@@ -59,3 +59,8 @@ def get_user(user_id: int) -> TelegramUser | None:
         return TelegramUser.objects.get(user_id=user_id)
     except TelegramUser.DoesNotExist:
         return None
+
+
+@sync_to_async
+def total_users() -> int:
+    return TelegramUser.objects.count()
