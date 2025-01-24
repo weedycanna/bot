@@ -16,7 +16,9 @@ bot = Bot(
     token=os.getenv("TOKEN"), default=DefaultBotProperties(parse_mode=ParseMode.HTML)
 )
 
-bot.my_admins_list = []
+bot.my_admins_list: list[int, ] = []
+CHANNEL_ID: str = os.getenv("CHANNEL_ID")
+CHANNEL_LINK: str = os.getenv("CHANNEL_LINK")
 
 dp = Dispatcher()
 
@@ -26,6 +28,7 @@ async def on_startup(bot):
 
     from handlers.admin_private import admin_router
     from handlers.captcha import captcha_router
+    from handlers.check_subscription import subscription_router
     from handlers.orders import order_router
     from handlers.registration import registration_router
     from handlers.user_group import user_group_router
@@ -34,15 +37,16 @@ async def on_startup(bot):
     dp.include_router(admin_router)
     dp.include_router(registration_router)
     dp.include_router(captcha_router)
+    dp.include_router(subscription_router)
     dp.include_router(order_router)
     dp.include_router(user_private_router)
     dp.include_router(user_group_router)
 
-    # call_command("migrate")
-    #
-    # call_command("loaddata", "fixtures/categories.json")
-    # call_command("loaddata", "fixtures/products.json")
-    # call_command("loaddata", "fixtures/banners.json")
+    call_command("migrate")
+
+    call_command("loaddata", "fixtures/categories.json")
+    call_command("loaddata", "fixtures/products.json")
+    call_command("loaddata", "fixtures/banners.json")
 
 
 async def on_shutdown(bot):

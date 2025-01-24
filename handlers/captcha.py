@@ -1,12 +1,15 @@
 import random
+from typing import Any
 
 from aiogram import Router, types
 from aiogram.filters import CommandStart
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from django_project.telegrambot.usersmanage.models import CaptchaRecord
+from app import CHANNEL_LINK
 from filters.chat_types import ChatTypeFilter
+from handlers.check_subscription import check_subscription
 from handlers.start_cmd import start_cmd
+from keybords.reply import create_keyboard
 from queries.captcha_queries import has_passed_captcha_recently, mark_captcha_passed
 from queries.user_queries import add_user, get_user
 
@@ -14,17 +17,17 @@ captcha_router = Router()
 captcha_router.message.filter(ChatTypeFilter(["private"]))
 
 
-stickers = ["😒", "🤓", "😎", "😬", "😯", "😶"]
-correct_sticker = {}
-captcha_checked = {}
+stickers: list[Any] = ["😒", "🤓", "😎", "😬", "😯", "😶"]
+correct_sticker: dict = {}
+captcha_checked: dict = {}
 
 
 @captcha_router.message(CommandStart())
 async def captcha_cmd(message: types.Message):
     user_id = message.from_user.id
     first_name = message.from_user.first_name or "Unknown"
-
     user = await get_user(user_id)
+
     if not user:
         user = await add_user(
             user_id=user_id,
@@ -32,11 +35,19 @@ async def captcha_cmd(message: types.Message):
         )
 
     if user is None:
-        await message.answer("Error creating user. Please try again three times.")
+        await message.answer("Error creating user. Please try again.")
         return
 
     if await has_passed_captcha_recently(user_id):
-        await start_cmd(message)
+        if await check_subscription(user_id):
+            await start_cmd(message)
+        else:
+            kb = create_keyboard(("🔄 Проверить подписку", "check_subscription"))
+            await message.answer(
+                f"🚫 Подпишитесь на каналы для использования бота:\n[Подписаться на канал]({CHANNEL_LINK})",
+                reply_markup=kb,
+                parse_mode='Markdown'
+            )
     else:
         correct_sticker[user_id] = random.choice(stickers)
         captcha_checked[user_id] = False
@@ -44,9 +55,8 @@ async def captcha_cmd(message: types.Message):
             InlineKeyboardButton(text=sticker, callback_data=sticker)
             for sticker in stickers
         ]
-        rows = [buttons[i : i + 3] for i in range(0, len(buttons), 3)]
+        rows = [buttons[i: i + 3] for i in range(0, len(buttons), 3)]
         keyboard = InlineKeyboardMarkup(inline_keyboard=rows)
-
         await message.answer(
             f"<strong>Hello, please confirm that you are not a robot,\n"
             f"select the specified smiley:</strong> {correct_sticker[user_id]} \n\n"
@@ -65,7 +75,16 @@ async def check_captcha(callback: types.CallbackQuery):
                     await callback.answer("Captcha passed!")
                     await callback.message.delete()
                     captcha_checked[user_id] = True
-                    await start_cmd(callback.message)
+
+                    if await check_subscription(user_id):
+                        await start_cmd(callback.message)
+                    else:
+                        kb = create_keyboard(("🔄 Проверить подписку", "check_subscription"))
+                        await callback.message.answer(
+                            f"🚫 Подпишитесь на каналы для использования бота:\n[Подписаться на канал]({CHANNEL_LINK})",
+                            reply_markup=kb,
+                            parse_mode='Markdown'
+                        )
                 else:
                     await callback.answer(
                         "Error saving captcha status. Please try again."
@@ -73,6 +92,14 @@ async def check_captcha(callback: types.CallbackQuery):
             else:
                 await callback.answer("Wrong sticker. Try again.")
         else:
-            await start_cmd(callback.message)
-    except CaptchaRecord.DoesNotExist:
+            if await check_subscription(user_id):
+                await start_cmd(callback.message)
+            else:
+                kb = create_keyboard(("🔄 Проверить подписку", "check_subscription"))
+                await callback.message.answer(
+                    f"🚫 Подпишитесь на каналы для использования бота:\n[Подписаться на канал]({CHANNEL_LINK})",
+                    reply_markup=kb,
+                    parse_mode='Markdown'
+                )
+    except Exception:
         await callback.answer("An error occurred. Please try again.")
