@@ -1,4 +1,3 @@
-import logging
 import os
 
 from aiogram import F, Router, types
@@ -7,10 +6,12 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import FSInputFile
 from django.conf import settings
 
+from app import bot
 from filters.chat_types import ChatTypeFilter, IsAdmin
 from keybords.inline import get_callback_btns
 from keybords.reply import get_keyboard
 from queries.banner_queries import change_banner_image, get_info_pages
+from queries.user_queries import total_users
 from queries.category_queries import get_categories
 from queries.products_queries import (
     add_product,
@@ -22,14 +23,17 @@ from queries.products_queries import (
 from states.banner_state import AddBanner
 from states.product_state import AddProduct
 
+
 admin_router = Router()
 admin_router.message.filter(ChatTypeFilter(["private"]), IsAdmin())
 
 
 ADMIN_KB = get_keyboard(
-    "Add good",
-    "Assortment",
-    "Add/Change banner",
+    "➕ Add good",
+    "🛒 Assortment",
+    "🖼️ Add/Change banner",
+    "📊 Statistics",
+    "📣 Newsletter",
     placeholder="What do you want to do?",
     sizes=(2,),
 )
@@ -40,13 +44,26 @@ async def admin_features(message: types.Message) -> None:
     await message.answer("What do you want to do?", reply_markup=ADMIN_KB)
 
 
-@admin_router.message(F.text == "Assortment")
+@admin_router.message(F.text == "🛒 Assortment")
 async def assortment(message: types.Message):
     categories = await get_categories()
     btns = {category.name: f"category_{category.id}" for category in categories}
     await message.answer(
         "Choose the category:", reply_markup=get_callback_btns(btns=btns)
     )
+
+
+@admin_router.message(F.text == "📊 Statistics")
+async def show_statistics(message: types.Message):
+    user_id = message.from_user.id
+    if user_id not in bot.my_admins_list:
+        await message.answer("❌ You do not have sufficient rights to access this feature.")
+        return
+
+    users = await total_users()
+
+    await message.answer(f"📊 Statistics:\n👥 Total users: {users}")
+
 
 
 @admin_router.callback_query(F.data.startswith("category_"))
@@ -108,7 +125,7 @@ async def get_delete_product(callback: types.CallbackQuery):
     await callback.message.answer("Good deleted successfully!")
 
 
-@admin_router.message(StateFilter(None), F.text == "Add/Change banner")
+@admin_router.message(StateFilter(None), F.text == "🖼️ Add/Change banner")
 async def add_image_to_banner(message: types.Message, state: FSMContext) -> None:
     pages_names = [page.name for page in await get_info_pages()]
     await message.answer(
@@ -155,7 +172,7 @@ async def edit_product_callback(callback: types.CallbackQuery, state: FSMContext
     await state.set_state(AddProduct.name)
 
 
-@admin_router.message(StateFilter(None), F.text == "Add good")
+@admin_router.message(StateFilter(None), F.text == "➕ Add good")
 async def get_add_product(message: types.Message, state: FSMContext):
     await message.answer(
         "Enter the name of the product you want to add:",
@@ -168,7 +185,6 @@ async def get_add_product(message: types.Message, state: FSMContext):
 @admin_router.message(StateFilter("*"), F.text.casefold() == "cancel")
 async def cancel_handler(message: types.Message, state: FSMContext) -> None:
     current_state = await state.get_state()
-    logging.info(f"Current state: {current_state}")
 
     if AddProduct.product_for_change:
         AddProduct.product_for_change = None
