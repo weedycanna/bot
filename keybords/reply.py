@@ -1,6 +1,6 @@
 from typing import Tuple
 
-from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
+from aiogram.types import KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
 
@@ -27,6 +27,14 @@ def get_keyboard(
     return keyboard.adjust(*sizes).as_markup(
         resize_keyboard=True, input_field_placeholder=placeholder
     )
+
+
+def create_keyboard(*buttons, row_width=1):
+    kb = []
+    for i in range(0, len(buttons), row_width):
+        row = buttons[i:i + row_width]
+        kb.append([InlineKeyboardButton(text=text, callback_data=data) for text, data in row])
+    return InlineKeyboardMarkup(inline_keyboard=kb)
 
 
 def get_back_button():
