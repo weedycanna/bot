@@ -28,6 +28,14 @@ All actions should be executed from the source directory of the project and only
    For production Postgresql
    For local Sqlite3
    ```
+
+## Docker 
+
+   ```bash
+   docker build .
+
+   docker-compose up
+   ```
    
 ## Run application
 
@@ -43,3 +51,7 @@ Run a file called app.
 ## License
 
 This project uses the [MIT] license(https://github.com/Sauberr/pizzeria-bot/blob/master/LICENSE)
+
+## Contact 
+
+To contact the author of the project, write to email 𝚍𝚖𝚒𝚝𝚛𝚒𝚢𝚋𝚒𝚛𝚒𝚕𝚔𝚘@𝚐𝚖𝚊𝚒𝚕.𝚌𝚘𝚖.
