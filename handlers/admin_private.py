@@ -7,6 +7,7 @@ from aiogram.types import FSInputFile
 from django.conf import settings
 
 from app import bot
+from django_project.telegrambot.usersmanage.models import TelegramUser
 from filters.chat_types import ChatTypeFilter, IsAdmin
 from keybords.inline import get_callback_btns
 from keybords.reply import get_keyboard
@@ -21,6 +22,7 @@ from queries.products_queries import (
     update_product,
 )
 from states.banner_state import AddBanner
+from states.newsletter import Newsletter
 from states.product_state import AddProduct
 
 
@@ -46,6 +48,11 @@ async def admin_features(message: types.Message) -> None:
 
 @admin_router.message(F.text == "🛒 Assortment")
 async def assortment(message: types.Message):
+    user_id = message.from_user.id
+    if user_id not in bot.my_admins_list:
+        await message.answer("❌ You do not have sufficient rights to access this feature.")
+        return
+
     categories = await get_categories()
     btns = {category.name: f"category_{category.id}" for category in categories}
     await message.answer(
@@ -127,6 +134,11 @@ async def get_delete_product(callback: types.CallbackQuery):
 
 @admin_router.message(StateFilter(None), F.text == "🖼️ Add/Change banner")
 async def add_image_to_banner(message: types.Message, state: FSMContext) -> None:
+    user_id = message.from_user.id
+    if user_id not in bot.my_admins_list:
+        await message.answer("❌ You do not have sufficient rights to access this feature.")
+        return
+
     pages_names = [page.name for page in await get_info_pages()]
     await message.answer(
         f"Send a banner photo. \n Choose the page for the banner:  \n {', '.join(pages_names)}"
@@ -174,6 +186,11 @@ async def edit_product_callback(callback: types.CallbackQuery, state: FSMContext
 
 @admin_router.message(StateFilter(None), F.text == "➕ Add good")
 async def get_add_product(message: types.Message, state: FSMContext):
+    user_id = message.from_user.id
+    if user_id not in bot.my_admins_list:
+        await message.answer("❌ You do not have sufficient rights to access this feature.")
+        return
+
     await message.answer(
         "Enter the name of the product you want to add:",
         reply_markup=types.ReplyKeyboardRemove(),
@@ -358,3 +375,26 @@ async def add_image(message: types.Message, state: FSMContext):
 @admin_router.message(AddProduct.image)
 async def not_correct_add_image(message: types.Message, state: FSMContext):
     await message.answer("You write wrong data, please load the image of the product:")
+
+
+@admin_router.message(F.text == "📣 Newsletter")
+async def newsletter(message: types.Message, state: FSMContext):
+    if message.from_user.id not in bot.my_admins_list:
+        await message.answer("❌ You do not have sufficient rights to access this feature.")
+        return
+
+    await state.set_state(Newsletter.waiting_for_content)
+    await message.answer("Enter the content of the newsletter")
+
+
+@admin_router.message(Newsletter.waiting_for_content)
+async def process_newsletter(message: types.Message, state: FSMContext):
+    users = TelegramUser.objects.all()
+    for user in users:
+        try:
+            await bot.send_message(user.user_id, message.text)
+        except Exception as e:
+            print(f"Error sending message to user: {e}")
+
+    await message.answer("✅ Newsletter sent successfully!")
+    await state.clear()
