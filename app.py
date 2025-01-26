@@ -9,6 +9,7 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from dotenv import load_dotenv
 
+
 load_dotenv()
 
 
@@ -16,9 +17,11 @@ bot = Bot(
     token=os.getenv("TOKEN"), default=DefaultBotProperties(parse_mode=ParseMode.HTML)
 )
 
-bot.my_admins_list: list[int, ] = []
+
+bot.my_admins_list: list[int, ] = [1508532435]
 CHANNEL_ID: str = os.getenv("CHANNEL_ID")
 CHANNEL_LINK: str = os.getenv("CHANNEL_LINK")
+
 
 dp = Dispatcher()
 

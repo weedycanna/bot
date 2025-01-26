@@ -1,4 +1,5 @@
 import os
+import textwrap
 
 from aiogram import F, Router, types
 from aiogram.filters import Command, StateFilter, or_f
@@ -12,6 +13,7 @@ from filters.chat_types import ChatTypeFilter, IsAdmin
 from keybords.inline import get_callback_btns
 from keybords.reply import get_keyboard
 from queries.banner_queries import change_banner_image, get_info_pages
+from queries.order_queries import total_orders
 from queries.user_queries import total_users
 from queries.category_queries import get_categories
 from queries.products_queries import (
@@ -19,7 +21,7 @@ from queries.products_queries import (
     delete_product,
     get_product,
     get_products,
-    update_product,
+    update_product, total_products, total_products_by_category,
 )
 from states.banner_state import AddBanner
 from states.newsletter import Newsletter
@@ -68,8 +70,17 @@ async def show_statistics(message: types.Message):
         return
 
     users = await total_users()
+    orders = await total_orders()
+    products = await total_products()
+    category_stats = await total_products_by_category()
 
-    await message.answer(f"📊 Statistics:\n👥 Total users: {users}")
+    category_stats_lines = [f"{category}: {count}" for category, count in category_stats.items()]
+    category_stats_text = textwrap.indent("\n".join(category_stats_lines), "        ")
+
+    await message.answer(f"📊 Statistics:\n👥 Total users: {users} \n"
+                         f"🛒 Total orders: {orders} \n"
+                         f"📦 Total products: {products} \n"
+                         f"📂 Products by Category:\n {category_stats_text}")
 
 
 

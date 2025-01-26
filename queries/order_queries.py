@@ -71,3 +71,8 @@ def get_order_items(order_id: str) -> List[OrderItem]:
         OrderItem.objects.filter(order_id=order_id).select_related("product").all()
     )
     return items
+
+
+@sync_to_async
+def total_orders() -> int:
+    return Order.objects.count()

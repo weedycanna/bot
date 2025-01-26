@@ -2,7 +2,7 @@ from typing import Dict, List, Optional
 
 from asgiref.sync import sync_to_async
 
-from django_project.telegrambot.usersmanage.models import Product
+from django_project.telegrambot.usersmanage.models import Product, Category
 
 
 @sync_to_async
@@ -47,3 +47,19 @@ def update_product(product_id: int, data: Dict) -> None:
 @sync_to_async
 def delete_product(product_id: int) -> None:
     Product.objects.filter(id=product_id).delete()
+
+
+@sync_to_async
+def total_products() -> int:
+    return Product.objects.count()
+
+
+@sync_to_async
+def total_products_by_category() -> dict[str, int]:
+    categories = Category.objects.all()
+    category_stats = {}
+    for category in categories:
+        category_stats[category.name] = Product.objects.filter(
+            category_id=category.id
+        ).count()
+    return category_stats
