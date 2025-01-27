@@ -18,7 +18,7 @@ bot = Bot(
 )
 
 
-bot.my_admins_list: list[int, ] = [1508532435]
+bot.my_admins_list: list[int, ] = []
 CHANNEL_ID: str = os.getenv("CHANNEL_ID")
 CHANNEL_LINK: str = os.getenv("CHANNEL_LINK")
 
