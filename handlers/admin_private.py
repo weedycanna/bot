@@ -1,5 +1,6 @@
 import os
 import textwrap
+from datetime import datetime
 
 from aiogram import F, Router, types
 from aiogram.filters import Command, StateFilter, or_f
@@ -401,11 +402,18 @@ async def newsletter(message: types.Message, state: FSMContext):
 @admin_router.message(Newsletter.waiting_for_content)
 async def process_newsletter(message: types.Message, state: FSMContext):
     users = TelegramUser.objects.all()
+    start_time = datetime.now()
+    error_count = 0
     for user in users:
         try:
             await bot.send_message(user.user_id, message.text)
-        except Exception as e:
-            print(f"Error sending message to user: {e}")
+        except TelegramUser.DoesNotExist:
+            error_count += 1
+            continue
 
-    await message.answer("✅ Newsletter sent successfully!")
+    await message.answer("<b> 🎉 Newsletter sent successfully! \n\n"
+                        f"✅ Sent to: {len(users) - error_count}\n"
+                        f"❌ Errors occurred while sending: {error_count}\n"
+                        f"⏳ Time taken: <code>{(datetime.now() - start_time).total_seconds():.2} sec.</code></b>")
+
     await state.clear()
