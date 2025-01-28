@@ -3,7 +3,7 @@ from typing import Union
 
 from aiogram import Bot, Router, types
 from aiogram.exceptions import TelegramBadRequest
-from aiogram.filters import Command, CommandStart
+from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
@@ -17,7 +17,6 @@ from queries.banner_queries import get_banner
 from queries.captcha_queries import has_passed_captcha_recently
 from queries.cart_queries import add_to_cart
 from queries.category_queries import get_categories
-from queries.user_queries import add_user, get_user
 
 user_private_router = Router()
 user_private_router.message.filter(ChatTypeFilter(["private"]))
@@ -40,48 +39,18 @@ async def process_callback(callback: types.CallbackQuery, state: FSMContext):
         await check_captcha(callback)
 
 
-@user_private_router.message(CommandStart())
-async def start_cmd(message: types.Message) -> None:
-    media, reply_markup = await get_menu_content(level=0, menu_name="main")
-
-    await message.answer_photo(
-        media.media, caption=media.caption, reply_markup=reply_markup
-    )
-
-
-async def get_add_to_cart(callback: types.CallbackQuery, callback_data: MenuCallBack):
-    user = callback.from_user
-
-    db_user = await get_user(user.id)
-
-    if db_user is None:
-        db_user = await add_user(
-            user_id=user.id,
-            first_name=user.first_name,
-            phone=None,
-        )
-
-    if db_user is None:
-        await callback.answer("Error adding user to the database.")
-        return
-
-    db_user = await get_user(user.id)
-    if db_user is None:
-        await callback.answer("User not found in the database after adding.")
-        return
-
-    cart_item = await add_to_cart(user.id, callback_data.product_id)
-
-    if cart_item:
-        await callback.answer("Product added to cart.")
-    else:
-        await callback.answer("Error adding product to cart.")
-
-
 @user_private_router.callback_query(MenuCallBack.filter())
 async def user_menu(callback: types.CallbackQuery, callback_data: MenuCallBack):
     if callback_data.menu_name == "add_to_cart":
-        await get_add_to_cart(callback, callback_data)
+        cart_item = await add_to_cart(
+            user_id=callback.from_user.id,
+            product_id=callback_data.product_id
+        )
+
+        if cart_item:
+            await callback.answer("Product added to cart.")
+        else:
+            await callback.answer("Error adding product to cart.")
         return
 
     media, reply_markup = await get_menu_content(
@@ -177,6 +146,7 @@ async def process_menu_command(update: Union[CallbackQuery, Message]):
     except (FileNotFoundError, AttributeError, OSError, TypeError):
         error_message = f"Error opening menu {menu_name}"
         await update.answer(error_message, show_alert=True)
+
 
 
 @user_private_router.message(Command("clear"))
