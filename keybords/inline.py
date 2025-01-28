@@ -14,6 +14,7 @@ def get_user_main_btns(*, level: int, sizes: Tuple[int] = (2,)):
         "About us ℹ️": "about",
         "Payment 💰": "payment",
         "Delivery 🚚": "shipping",
+        "Profile 👤": "profile",
     }
     for text, menu_name in btns.items():
         if menu_name == "catalog":
@@ -33,6 +34,13 @@ def get_user_main_btns(*, level: int, sizes: Tuple[int] = (2,)):
                 )
             )
         elif menu_name == "orders":
+            keyboard.add(
+                InlineKeyboardButton(
+                    text=text,
+                    callback_data=MenuCallBack(level=level, menu_name=menu_name).pack(),
+                )
+            )
+        elif menu_name == "profile":
             keyboard.add(
                 InlineKeyboardButton(
                     text=text,
@@ -247,7 +255,7 @@ def get_order_details_keyboard(orders):
         keyboard.append(
             [
                 InlineKeyboardButton(
-                    text=f"📋 Детали заказа #{str(order.id)[:8]}",
+                    text=f"📋 Order details #{str(order.id)[:8]}",
                     callback_data=OrderDetailCallBack(order_id=str(order.id)).pack(),
                 )
             ]
@@ -256,10 +264,19 @@ def get_order_details_keyboard(orders):
     keyboard.append(
         [
             InlineKeyboardButton(
-                text="◀️ Назад",
-                callback_data=MenuCallBack(menu_name="main", level=1).pack(),
+                text="◀️ Back",
+                callback_data=MenuCallBack(menu_name="main", level=1-1).pack(),
             )
         ]
     )
 
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
+
+
+
+def get_inline_back_button():
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="⬅️ Back", callback_data=MenuCallBack(menu_name="main", level=1-1).pack())]
+        ]
+    )
