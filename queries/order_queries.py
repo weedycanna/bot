@@ -76,3 +76,12 @@ def get_order_items(order_id: str) -> List[OrderItem]:
 @sync_to_async
 def total_orders() -> int:
     return Order.objects.count()
+
+
+@sync_to_async
+def get_order_status(order_id: str) -> str:
+    try:
+        order = Order.objects.get(id=order_id)
+        return order.status
+    except Order.DoesNotExist:
+        return "unknown"
