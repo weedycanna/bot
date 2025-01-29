@@ -9,10 +9,9 @@ from phonenumber_field.modelfields import PhoneNumberField
 
 
 ORDER_STATUS = (
-    ("pending", "Pending"),
-    ("processing", "Processing"),
-    ("completed", "Completed"),
-    ("cancelled", "Cancelled"),
+    ("pending", "pending"),
+    ("completed", "completed"),
+    ("cancelled", "cancelled"),
 )
 
 
