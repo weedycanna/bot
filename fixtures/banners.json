@@ -4,10 +4,10 @@
   "pk": 1,
   "fields": {
     "created_at": "2024-12-25T23:41:16.445Z",
-    "updated_at": "2024-12-25T23:41:16.445Z",
+    "updated_at": "2025-01-29T17:33:11.705Z",
     "name": "main",
     "image": "banners/main_CLJIAvr.jpg",
-    "description": "Главная страничка"
+    "description": "Главная страница"
   }
 },
 {
@@ -74,6 +74,17 @@
     "name": "catalog",
     "image": "banners/catalog_YKGbsbO.jpg",
     "description": "Каталог наших товаров"
+  }
+},
+{
+  "model": "usersmanage.banner",
+  "pk": 8,
+  "fields": {
+    "created_at": "2025-01-27T18:00:38.073Z",
+    "updated_at": "2025-01-27T18:00:38.073Z",
+    "name": "profile",
+    "image": "banners/profile.jpg",
+    "description": ""
   }
 }
 ]
