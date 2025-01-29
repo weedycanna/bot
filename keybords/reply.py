@@ -1,6 +1,7 @@
 from typing import Tuple
 
-from aiogram.types import KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import (InlineKeyboardButton, InlineKeyboardMarkup,
+                           KeyboardButton, ReplyKeyboardMarkup)
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
 

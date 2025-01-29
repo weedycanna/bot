@@ -69,4 +69,3 @@ def reduce_product_in_cart(user_id: int, product_id: int) -> bool:
             return False
     except Cart.DoesNotExist:
         return False
-

@@ -1,15 +1,14 @@
 import asyncio
 import logging
 import os
-from aiocryptopay import AioCryptoPay, Networks
 
 import betterlogging as bt
 import django
+from aiocryptopay import AioCryptoPay, Networks
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from dotenv import load_dotenv
-
 
 load_dotenv()
 
@@ -33,11 +32,11 @@ dp = Dispatcher()
 async def on_startup(bot):
     from django.core.management import call_command
 
-    from handlers.captcha import captcha_router
-    from handlers.registration import registration_router
     from handlers.admin_private import admin_router
+    from handlers.captcha import captcha_router
     from handlers.check_subscription import subscription_router
     from handlers.orders import order_router
+    from handlers.registration import registration_router
     from handlers.user_group import user_group_router
     from handlers.user_private import user_private_router
 

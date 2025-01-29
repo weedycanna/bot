@@ -1,7 +1,11 @@
+import random
 from typing import Any
 
+from aiogram import Router, types
 from aiogram.filters import CommandStart
-
+from aiogram.fsm.context import FSMContext
+from aiogram.types import (InlineKeyboardButton, InlineKeyboardMarkup, Message,
+                           ReplyKeyboardRemove)
 from asgiref.sync import sync_to_async
 from django.utils import timezone
 
@@ -14,15 +18,6 @@ from keybords.reply import create_keyboard
 from queries.captcha_queries import mark_captcha_passed
 from queries.user_queries import add_user, get_user
 from states.registration_state import RegistrationStates
-from aiogram.types import Message
-
-import random
-
-from aiogram import Router, types
-from aiogram.fsm.context import FSMContext
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove
-
-
 
 captcha_router = Router()
 captcha_router.message.filter(ChatTypeFilter(["private"]))

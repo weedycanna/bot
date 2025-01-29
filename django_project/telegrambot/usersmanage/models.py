@@ -7,7 +7,6 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
 
-
 ORDER_STATUS = (
     ("pending", "pending"),
     ("completed", "completed"),

@@ -2,7 +2,8 @@ from asgiref.sync import sync_to_async
 from django.db import transaction
 from django.utils import timezone
 
-from django_project.telegrambot.usersmanage.models import CaptchaRecord, TelegramUser
+from django_project.telegrambot.usersmanage.models import (CaptchaRecord,
+                                                           TelegramUser)
 
 
 @sync_to_async

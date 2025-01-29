@@ -1,11 +1,10 @@
-from aiogram import Router, F
+from aiogram import F, Router
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import CallbackQuery
 
-from app import bot, CHANNEL_ID
+from app import CHANNEL_ID, bot
 from filters.chat_types import ChatTypeFilter
 from handlers.menu_processing import get_menu_content
-
 
 subscription_router = Router()
 subscription_router.message.filter(ChatTypeFilter(["private"]))

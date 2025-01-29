@@ -2,7 +2,7 @@ from typing import Dict, List, Optional
 
 from asgiref.sync import sync_to_async
 
-from django_project.telegrambot.usersmanage.models import Product, Category
+from django_project.telegrambot.usersmanage.models import Category, Product
 
 
 @sync_to_async

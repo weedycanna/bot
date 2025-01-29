@@ -1,42 +1,30 @@
-import os
-
 import asyncio
+import os
 from datetime import datetime, timedelta
 from typing import Union
 
 from aiogram import F, Router, types
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from aiogram.types import (
-    CallbackQuery,
-    FSInputFile,
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-    InputMediaPhoto,
-    KeyboardButton,
-    Message,
-    ReplyKeyboardMarkup,
-    ReplyKeyboardRemove,
-)
+from aiogram.types import (CallbackQuery, FSInputFile, InlineKeyboardButton,
+                           InlineKeyboardMarkup, InputMediaPhoto,
+                           KeyboardButton, Message, ReplyKeyboardMarkup,
+                           ReplyKeyboardRemove)
 from django.conf import settings
 
 from app import crypto_client
 from callbacks.callbacks import OrderDetailCallBack
 from filters.chat_types import ChatTypeFilter
-
-from keybords.inline import MenuCallBack, get_order_details_keyboard, get_user_main_btns
+from keybords.inline import (MenuCallBack, get_order_details_keyboard,
+                             get_user_main_btns)
 from keybords.reply import get_back_button
 from queries.banner_queries import get_banner
 from queries.cart_queries import clear_cart, get_cart_items
-from queries.order_queries import (
-    add_order_with_items,
-    get_order_by_id,
-    get_order_items,
-    get_user_orders, get_order_status,
-)
+from queries.order_queries import (add_order_with_items, get_order_by_id,
+                                   get_order_items, get_order_status,
+                                   get_user_orders)
 from states.order_state import OrderState
 from utils.utils import format_phone_number
-
 
 order_router = Router()
 order_router.message.filter(ChatTypeFilter(["private"]))

@@ -1,34 +1,27 @@
-from aiogram.filters import CommandStart, StateFilter
+import os
+from typing import Union
+
+from aiogram import F, Router, types
+from aiogram.filters import Command, CommandStart, StateFilter
+from aiogram.fsm.context import FSMContext
+from aiogram.types import (CallbackQuery, FSInputFile, InputMediaPhoto,
+                           Message, ReplyKeyboardRemove)
+from django.conf import settings
+from django.utils import timezone
 from phonenumbers import NumberParseException
 
 from app import CHANNEL_LINK
-from handlers.captcha import stickers, word_to_sticker, words, send_captcha, \
-    has_passed_captcha_recently
+from django_project.telegrambot.usersmanage.models import CaptchaRecord, Order
+from filters.chat_types import ChatTypeFilter
+from handlers.captcha import (has_passed_captcha_recently, send_captcha,
+                              stickers, word_to_sticker, words)
 from handlers.check_subscription import check_subscription
 from handlers.start_cmd import start_cmd
-from queries.user_queries import create_telegram_user
-from states.registration_state import RegistrationStates
-import os
-from typing import Union
-from django.utils import timezone
-
-from aiogram import F, Router, types
-from aiogram.filters import Command
-from aiogram.fsm.context import FSMContext
-from aiogram.types import (
-    CallbackQuery,
-    FSInputFile,
-    InputMediaPhoto,
-    Message,
-    ReplyKeyboardRemove,
-)
-from django.conf import settings
-from django_project.telegrambot.usersmanage.models import Order, CaptchaRecord
-from filters.chat_types import ChatTypeFilter
 from keybords.inline import MenuCallBack, get_inline_back_button
-from keybords.reply import get_back_button, create_keyboard
+from keybords.reply import create_keyboard, get_back_button
 from queries.banner_queries import get_banner
-from queries.user_queries import get_user
+from queries.user_queries import create_telegram_user, get_user
+from states.registration_state import RegistrationStates
 from utils.utils import format_phone_number
 
 registration_router = Router()

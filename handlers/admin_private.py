@@ -14,20 +14,16 @@ from filters.chat_types import ChatTypeFilter, IsAdmin
 from keybords.inline import get_callback_btns
 from keybords.reply import get_keyboard
 from queries.banner_queries import change_banner_image, get_info_pages
-from queries.order_queries import total_orders
-from queries.user_queries import total_users
 from queries.category_queries import get_categories
-from queries.products_queries import (
-    add_product,
-    delete_product,
-    get_product,
-    get_products,
-    update_product, total_products, total_products_by_category,
-)
+from queries.order_queries import total_orders
+from queries.products_queries import (add_product, delete_product, get_product,
+                                      get_products, total_products,
+                                      total_products_by_category,
+                                      update_product)
+from queries.user_queries import total_users
 from states.banner_state import AddBanner
 from states.newsletter import Newsletter
 from states.product_state import AddProduct
-
 
 admin_router = Router()
 admin_router.message.filter(ChatTypeFilter(["private"]), IsAdmin())

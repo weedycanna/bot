@@ -2,7 +2,8 @@ from string import punctuation
 from typing import Set
 
 from aiogram.utils.formatting import PhoneNumber
-from phonenumbers import PhoneNumberFormat, format_number, is_valid_number, parse
+from phonenumbers import (PhoneNumberFormat, format_number, is_valid_number,
+                          parse)
 
 
 def clean_text(text: str) -> str:
