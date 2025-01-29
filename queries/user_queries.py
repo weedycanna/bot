@@ -1,37 +1,34 @@
-from typing import Optional
+from typing import Optional, Union
 
 from asgiref.sync import sync_to_async
-from django.db import IntegrityError
-from django.db.models import Q
+from django.db import IntegrityError, transaction
 
 from django_project.telegrambot.usersmanage.models import TelegramUser
-from utils.utils import format_phone_number
 
 
 @sync_to_async
-def create_telegram_user(
-    phone_number: str, first_name: str, user_id: int
-) -> Optional[TelegramUser]:
+def create_telegram_user(user_id: int, first_name: str, phone_number: str):
     try:
-        formatted_phone = format_phone_number(phone_number)
-        if not formatted_phone:
-            return None
+        with transaction.atomic():
+            if TelegramUser.objects.filter(phone_number=phone_number).exclude(user_id=user_id).exists():
+                return None
 
-        existing_user = TelegramUser.objects.filter(
-            Q(phone_number=formatted_phone) | Q(user_id=user_id)
-        ).first()
+            user = TelegramUser.objects.filter(user_id=user_id).first()
 
-        if existing_user:
-            return None
+            if user:
+                user.first_name = first_name
+                user.phone_number = phone_number
+                user.save()
+            else:
+                user = TelegramUser.objects.create(
+                    user_id=user_id,
+                    first_name=first_name,
+                    phone_number=phone_number
+                )
 
-        user = TelegramUser.objects.create(
-            user_id=user_id,
-            phone_number=formatted_phone,
-            first_name=first_name,
-        )
-        return user
+            return user
 
-    except IntegrityError:
+    except Exception as e:
         return None
 
 

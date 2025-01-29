@@ -1,12 +1,11 @@
-import random
-
-import phonenumbers
 from aiogram.filters import CommandStart, StateFilter
 from phonenumbers import NumberParseException
 
-from handlers.captcha import captcha_checked, correct_sticker, stickers
+from app import CHANNEL_LINK
+from handlers.captcha import stickers, word_to_sticker, words, send_captcha, \
+    has_passed_captcha_recently
+from handlers.check_subscription import check_subscription
 from handlers.start_cmd import start_cmd
-from queries.captcha_queries import has_passed_captcha_recently
 from queries.user_queries import create_telegram_user
 from states.registration_state import RegistrationStates
 import os
@@ -19,8 +18,6 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import (
     CallbackQuery,
     FSInputFile,
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
     InputMediaPhoto,
     Message,
     ReplyKeyboardRemove,
@@ -29,12 +26,10 @@ from django.conf import settings
 from django_project.telegrambot.usersmanage.models import Order, CaptchaRecord
 from filters.chat_types import ChatTypeFilter
 from keybords.inline import MenuCallBack, get_inline_back_button
-from keybords.reply import get_back_button
+from keybords.reply import get_back_button, create_keyboard
 from queries.banner_queries import get_banner
 from queries.user_queries import get_user
-
-
-
+from utils.utils import format_phone_number
 
 registration_router = Router()
 registration_router.message.filter(ChatTypeFilter(["private"]))
@@ -43,43 +38,21 @@ registration_router.message.filter(ChatTypeFilter(["private"]))
 @registration_router.message(CommandStart())
 async def start_registration(message: types.Message, state: FSMContext):
     user_id = message.from_user.id
-
     user = await get_user(user_id)
 
-    if user:
+    if user and user.phone_number:
         if await has_passed_captcha_recently(user_id):
             await start_cmd(message)
-            return
         else:
-            correct_sticker[user_id] = random.choice(stickers)
-            captcha_checked[user_id] = False
+            await send_captcha(message, user_id, words, word_to_sticker, stickers)
+        return
 
-            buttons = [
-                InlineKeyboardButton(text=sticker, callback_data=sticker)
-                for sticker in stickers
-            ]
-            rows = [buttons[i : i + 3] for i in range(0, len(buttons), 3)]
-            keyboard = InlineKeyboardMarkup(inline_keyboard=rows)
+    if not await has_passed_captcha_recently(user_id):
+        await send_captcha(message, user_id, words, word_to_sticker, stickers)
+        return
 
-            await message.answer(
-                f"<strong>Hello, please confirm that you are not a robot,\n"
-                f"choose the indicated emoji:</strong> {correct_sticker[user_id]} \n\n"
-                f"<i>After passing the captcha, you will get access to the bot</i>",
-                reply_markup=keyboard,
-                parse_mode="HTML",
-            )
-            return
-
+    await message.answer("Please enter your name:")
     await state.set_state(RegistrationStates.first_name)
-    await message.answer(
-        "🙌 Hello, glad to see you 🙌\n\n"
-        "This bot will help you access the menu of our pizzeria 🍕\n"
-        "You can also place an order and get information about us 📋\n\n\n"
-        "All this and more will be available after registration 🔽✅\n"
-        "Please enter your name:",
-        reply_markup=ReplyKeyboardRemove(),
-        parse_mode="HTML",
-    )
 
 
 @registration_router.message(StateFilter(RegistrationStates.first_name))
@@ -111,49 +84,49 @@ async def process_phone(message: types.Message, state: FSMContext):
         return
 
     try:
-        phone_number = phonenumbers.parse(message.text, None)
-        if not phonenumbers.is_valid_number(phone_number):
-            raise ValueError("Invalid phone number format")
+        formatted_phone = format_phone_number(message.text)
+        if not formatted_phone:
+            await message.answer(
+                "❌ Invalid phone number format. Please enter the number in international format\n"
+                "Examples:\n"
+                "+380 XX XXX XXXX\n"
+                "+7 XXX XXX XXXX"
+            )
+            return
 
         user_data = await state.get_data()
-        formatted_phone = phonenumbers.format_number(
-            phone_number, phonenumbers.PhoneNumberFormat.E164
-        )
 
         user_id = message.from_user.id
         user = await create_telegram_user(
-            phone_number=formatted_phone,
-            first_name=user_data["first_name"],
             user_id=user_id,
+            first_name=user_data["first_name"],
+            phone_number=formatted_phone
         )
 
         if not user:
             await message.answer(
-                "❌ A user with this phone number or Telegram ID already exists. "
-                "Please check your data or contact the administrator."
+                "❌ This phone number is already registered with another account. "
+                "Please use a different phone number or contact the administrator."
             )
             return
 
         await state.clear()
 
-        correct_sticker[user_id] = random.choice(stickers)
-        captcha_checked[user_id] = False
-
-        buttons = [
-            InlineKeyboardButton(text=sticker, callback_data=sticker)
-            for sticker in stickers
-        ]
-        rows = [buttons[i : i + 3] for i in range(0, len(buttons), 3)]
-        keyboard = InlineKeyboardMarkup(inline_keyboard=rows)
-
         await message.answer(
-            f"<strong>✅ Registration successful!</strong>\n\n"
-            f"<strong>Confirm that you are not a robot.\n"
-            f"Choose the indicated emoji:</strong> {correct_sticker[user_id]}\n"
-            f"<i>After passing the captcha you will get access to the bot</i>",
-            reply_markup=keyboard,
-            parse_mode="HTML",
+            "✅ Registration completed successfully!\n"
+            f"Name: {user_data['first_name']}\n"
+            f"Phone: {formatted_phone}"
         )
+
+        if await check_subscription(user_id):
+            await start_cmd(message)
+        else:
+            kb = create_keyboard(("🔄 Check subscription", "check_subscription"))
+            await message.answer(
+                f"🚫 Please subscribe to the channels to use the bot:\n[Subscribe to the channel]({CHANNEL_LINK})",
+                reply_markup=kb,
+                parse_mode='Markdown'
+            )
 
     except NumberParseException:
         await message.answer(
@@ -161,6 +134,10 @@ async def process_phone(message: types.Message, state: FSMContext):
             "(for example, +79123456789):"
         )
     except ValueError:
+        await message.answer(
+            "❌ Invalid phone number format. Please try again."
+        )
+    except Exception:
         await message.answer(
             "❌ An error occurred during registration. Please try again later."
         )

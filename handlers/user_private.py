@@ -10,11 +10,10 @@ from aiogram.types import CallbackQuery, Message
 from django_project.telegrambot.usersmanage.models import Banner
 from filters.chat_types import ChatTypeFilter
 from handlers.admin_private import category_choice
-from handlers.captcha import check_captcha
+from handlers.captcha import check_captcha, has_passed_captcha_recently
 from handlers.menu_processing import get_menu_content
 from keybords.inline import MenuCallBack, get_user_catalog_btns
 from queries.banner_queries import get_banner
-from queries.captcha_queries import has_passed_captcha_recently
 from queries.cart_queries import add_to_cart
 from queries.category_queries import get_categories
 
@@ -36,7 +35,7 @@ async def process_callback(callback: types.CallbackQuery, state: FSMContext):
         except ValueError:
             await callback.answer("Unrecognized action.", show_alert=True)
     else:
-        await check_captcha(callback)
+        await check_captcha(callback, state)
 
 
 @user_private_router.callback_query(MenuCallBack.filter())
