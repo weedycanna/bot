@@ -1,6 +1,7 @@
 import asyncio
 import os
 from datetime import datetime, timedelta
+from textwrap import dedent
 from typing import Union
 
 from aiogram import F, Router, types
@@ -9,12 +10,13 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import (CallbackQuery, FSInputFile, InlineKeyboardButton,
                            InlineKeyboardMarkup, InputMediaPhoto,
                            KeyboardButton, Message, ReplyKeyboardMarkup,
-                           ReplyKeyboardRemove)
+                           ReplyKeyboardRemove, Invoice)
 from django.conf import settings
 
 from app import crypto_client
 from callbacks.callbacks import OrderDetailCallBack
 from filters.chat_types import ChatTypeFilter
+from handlers.payment import convert_to_crypto
 from keybords.inline import (MenuCallBack, get_order_details_keyboard,
                              get_user_main_btns)
 from keybords.reply import get_back_button
@@ -25,6 +27,7 @@ from queries.order_queries import (add_order_with_items, get_order_by_id,
                                    get_user_orders)
 from states.order_state import OrderState
 from utils.utils import format_phone_number
+
 
 order_router = Router()
 order_router.message.filter(ChatTypeFilter(["private"]))
@@ -96,16 +99,16 @@ async def process_address(message: types.Message, state: FSMContext):
     cart_items = await get_cart_items(message.from_user.id)
     total_amount = sum(float(item.product.price) * item.quantity for item in cart_items)
 
-    confirmation_message = f"""
+    confirmation_message = dedent(f"""
         <b>📋 Order Details</b>
         <i>👤 Customer Information:</i>
-        • Name: <code>{user_data['name']}</code>
-        • Phone: <code>{user_data['phone']}</code>
-        • Address: <code>{user_data['address']}</code>
+              • Name: <code>{user_data['name']}</code>
+              • Phone: <code>{user_data['phone']}</code>
+              • Address: <code>{user_data['address']}</code>
         <i>💰 Payment Information:</i>
-        • Total Amount: <b>${total_amount:.2f}</b>
+              • Total Amount: <b>${total_amount:.2f}</b>
         <i>⬇️ Please select payment method below</i>
-    """
+    """)
 
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
@@ -151,17 +154,19 @@ async def process_crypto_payment(callback: CallbackQuery, state: FSMContext):
         amount_usd = user_data.get('amount_usd')
         crypto = callback.data.split("_")[1]
 
-        if not amount_usd:
-            await callback.answer("❌ Error: Amount not found", show_alert=True)
-            return
-
         try:
+            crypto_amount = await convert_to_crypto(float(amount_usd), 'USD', crypto)
+
+            if crypto_amount is None:
+                await callback.answer("❌ Error getting exchange rate. Please try again.", show_alert=True)
+                return
+
             invoice = await crypto_client.create_invoice(
                 asset=crypto,
-                amount=float(amount_usd),
+                amount=crypto_amount,
                 description=f"Order payment for {callback.from_user.id}"
             )
-        except Exception:
+        except Invoice.DoesNotExist:
             await callback.answer("❌ Error creating crypto invoice. Please try again.", show_alert=True)
             return
 
@@ -188,15 +193,21 @@ async def process_crypto_payment(callback: CallbackQuery, state: FSMContext):
             ]
         )
 
-        payment_message = f"""
+        if crypto == "USDT":
+            crypto_format = f"{crypto_amount:.2f}"
+        else:
+            crypto_format = f"{crypto_amount:.8f}"
+
+        payment_message = dedent(f"""
             <b>📋 Payment Details</b>
             <i>💰 Payment Information:</i>
-            • Amount: <b>${amount_usd:.2f}</b>
-            • Currency: <b>{crypto}</b>
-            • Expiration: <code>{expiration_time.strftime('%H:%M:%S')}</code>  
+                  • Amount USD: <b>${amount_usd:.2f}</b>
+                  • Amount {crypto}: <b>{crypto_format}</b>
+                  • Currency: <b>{crypto}</b>
+                  • Expiration: <code>{expiration_time.strftime('%H:%M:%S')}</code>  
             <i>⏰ Time Remaining: 3 minutes</i>   
             <b>ℹ️ Please complete the payment before the timer expires</b>
-        """
+        """)
 
         try:
             await callback.message.edit_text(
@@ -253,7 +264,7 @@ async def check_payment(invoice_id, user_id, amount, crypto, bot, state, user_da
 
                     order_status = await get_order_status(order.id)
 
-                    success_message = f"""
+                    success_message = dedent(f"""
                         <b>Payment Successful</b>
 
                         <i>Order Information:</i>
@@ -270,7 +281,7 @@ async def check_payment(invoice_id, user_id, amount, crypto, bot, state, user_da
                         • Address: <code>{user_data.get("address", "")}</code>
 
                         <i>You can view your order details in the Orders menu</i>
-                    """
+                    """)
 
                     await bot.send_message(
                         user_id,
