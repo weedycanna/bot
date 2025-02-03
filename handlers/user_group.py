@@ -70,7 +70,7 @@ async def clear_group(message: types.Message, bot: Bot) -> None:
                 pass
 
     except ValueError:
-        await message.answer("Invalid command format. Use: /clean or /clear <number>")
+        await message.answer("Invalid command format. Use: /clear <number>")
 
 
 @user_group_router.edited_message()

@@ -25,6 +25,7 @@ from states.banner_state import AddBanner
 from states.newsletter import Newsletter
 from states.product_state import AddProduct
 
+
 admin_router = Router()
 admin_router.message.filter(ChatTypeFilter(["private"]), IsAdmin())
 
@@ -80,7 +81,6 @@ async def show_statistics(message: types.Message):
                          f"📂 Products by Category:\n {category_stats_text}")
 
 
-
 @admin_router.callback_query(F.data.startswith("category_"))
 async def starring_at_product(callback: types.CallbackQuery):
     try:
@@ -133,7 +133,7 @@ async def get_delete_product(callback: types.CallbackQuery):
     product_id = callback.data.split("_")[-1]
     await delete_product(int(product_id))
 
-    animation_url: str = "https://media.giphy.com/media/h3oEjI6SIIHBdRxXI40/giphy.gif"
+    animation_url: str = os.getenv("DELETE_ANIMATION_URL")
     await callback.message.answer_animation(animation=animation_url)
 
     await callback.answer("Good deleted successfully!")
@@ -207,7 +207,6 @@ async def get_add_product(message: types.Message, state: FSMContext):
 
 
 @admin_router.message(StateFilter("*"), Command("cancel"))
-@admin_router.message(StateFilter("*"), F.text.casefold() == "cancel")
 async def cancel_handler(message: types.Message, state: FSMContext) -> None:
     current_state = await state.get_state()
 
@@ -219,7 +218,6 @@ async def cancel_handler(message: types.Message, state: FSMContext) -> None:
 
 
 @admin_router.message(StateFilter("*"), Command("back"))
-@admin_router.message(StateFilter("*"), F.text.casefold() == "back")
 async def back_step_handler(message: types.Message, state: FSMContext):
     current_state = await state.get_state()
 

@@ -10,7 +10,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import (CallbackQuery, FSInputFile, InlineKeyboardButton,
                            InlineKeyboardMarkup, InputMediaPhoto,
                            KeyboardButton, Message, ReplyKeyboardMarkup,
-                           ReplyKeyboardRemove, Invoice)
+                           ReplyKeyboardRemove, Invoice, LabeledPrice)
 from django.conf import settings
 
 from app import crypto_client
@@ -18,7 +18,7 @@ from callbacks.callbacks import OrderDetailCallBack
 from filters.chat_types import ChatTypeFilter
 from handlers.payment import convert_to_crypto
 from keybords.inline import (MenuCallBack, get_order_details_keyboard,
-                             get_user_main_btns)
+                             get_user_main_btns, get_select_payment_keyboard)
 from keybords.reply import get_back_button
 from queries.banner_queries import get_banner
 from queries.cart_queries import clear_cart, get_cart_items
@@ -115,7 +115,8 @@ async def process_address(message: types.Message, state: FSMContext):
             [
                 InlineKeyboardButton(text="Select Payment Method 💳", callback_data="select_payment"),
                 InlineKeyboardButton(text="Cancel ❌", callback_data="cancel_order"),
-            ]
+            ],
+            [InlineKeyboardButton(text="User agreement 📜", url=os.getenv("USER_AGREEMENT"))]
         ]
     )
 
@@ -126,26 +127,14 @@ async def process_address(message: types.Message, state: FSMContext):
 
 @order_router.callback_query(F.data.startswith("select_payment"))
 async def select_payment_method(callback: CallbackQuery, state: FSMContext):
-    keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(text="TON 💎", callback_data="crypto_TON"),
-                InlineKeyboardButton(text="BTC ₿", callback_data="crypto_BTC"),
-            ],
-            [
-                InlineKeyboardButton(text="USDT 💵", callback_data="crypto_USDT"),
-                InlineKeyboardButton(text="ETH ⟠", callback_data="crypto_ETH"),
-            ],
-            [InlineKeyboardButton(text="Back ⬅️", callback_data="cancel_order")]
-        ]
-    )
+
+    keyboard = get_select_payment_keyboard()
 
     await callback.message.edit_text(
-        "<b>💳 Select Cryptocurrency for Payment:</b>",
+        "<b>💳 Select Payment Method:</b>",
         reply_markup=keyboard,
         parse_mode="HTML"
     )
-
 
 @order_router.callback_query(F.data.startswith("crypto_"))
 async def process_crypto_payment(callback: CallbackQuery, state: FSMContext):
@@ -239,6 +228,39 @@ async def process_crypto_payment(callback: CallbackQuery, state: FSMContext):
         return
 
 
+@order_router.callback_query(F.data == "star_payment")
+async def handle_star_payment(callback: CallbackQuery, state: FSMContext):
+    try:
+        user_data = await state.get_data()
+        amount_usd = user_data.get('amount_usd')
+        stars_amount = int(amount_usd * 35)
+
+        kb = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text=f"Pay {stars_amount} Stars ⭐", pay=True)],
+            [InlineKeyboardButton(text="Cancel ❌", callback_data="cancel_order")]
+        ])
+
+        prices = [LabeledPrice(label="XTR", amount=stars_amount)]
+        expiration_time = datetime.now() + timedelta(minutes=3)
+        payload = f"{amount_usd}_{stars_amount}_{expiration_time.strftime('%Y-%m-%d %H:%M:%S')}"
+
+        await callback.bot.send_invoice(
+            chat_id=callback.from_user.id,
+            title="Order Payment",
+            description=f"Payment for the amount {stars_amount} Stars",
+            prices=prices,
+            provider_token=os.getenv("STAR_PAYMENT_TOKEN"),
+            payload=payload,
+            currency="XTR",
+            protect_content=False,
+            request_timeout=15,
+            reply_markup=kb
+        )
+
+    except Exception:
+        await callback.answer(f"Error processing Star payment", show_alert=True)
+
+
 async def check_payment(invoice_id, user_id, amount, crypto, bot, state, user_data):
     expiration_time = datetime.now() + timedelta(minutes=3)
 
@@ -292,7 +314,6 @@ async def check_payment(invoice_id, user_id, amount, crypto, bot, state, user_da
                     await state.clear()
                     return
                 except Exception as e:
-                    print(f"Error processing order: {e}")
                     await bot.send_message(
                         user_id,
                         "❌ <b>Payment received but order creation failed.</b>\n"
