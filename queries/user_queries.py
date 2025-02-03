@@ -28,7 +28,7 @@ def create_telegram_user(user_id: int, first_name: str, phone_number: str):
 
             return user
 
-    except Exception as e:
+    except TelegramUser.DoesNotExist:
         return None
 
 
