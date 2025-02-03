@@ -281,3 +281,22 @@ def get_inline_back_button():
             [InlineKeyboardButton(text="⬅️ Back", callback_data=MenuCallBack(menu_name="main", level=1-1).pack())]
         ]
     )
+
+
+def get_select_payment_keyboard():
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="TON 💎", callback_data="crypto_TON"),
+                InlineKeyboardButton(text="BTC ₿", callback_data="crypto_BTC"),
+            ],
+            [
+                InlineKeyboardButton(text="USDT 💵", callback_data="crypto_USDT"),
+                InlineKeyboardButton(text="ETH ⟠", callback_data="crypto_ETH"),
+            ],
+            [
+                InlineKeyboardButton(text="Star Payment ⭐", callback_data="star_payment")
+            ],
+            [InlineKeyboardButton(text="Back ⬅️", callback_data="cancel_order")]
+        ]
+    )
