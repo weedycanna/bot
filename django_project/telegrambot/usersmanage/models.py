@@ -77,10 +77,10 @@ class TelegramUser(models.Model):
     id = models.AutoField(primary_key=True)
     user_id = models.BigIntegerField(unique=True)
     first_name = models.CharField(
-        _("first name"), max_length=30, blank=False, null=False
+        _("first name"), max_length=30
     )
     phone_number = PhoneNumberField(
-        _("phone number"), unique=True, blank=False, null=False
+        _("phone number"), unique=True
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

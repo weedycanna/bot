@@ -161,7 +161,7 @@ async def process_profile_command(update: Union[CallbackQuery, Message]):
             f"<b>⚡️ Profile</b>\n"
             f"👉🏼 ID: <code>{user_id}</code>\n"
             f"➖➖➖➖➖➖➖➖➖➖➖➖\n\n"
-            f"⚙️ Firstname: <code>{update.from_user.first_name}</code>\n"
+            f"⚙️ Fullname: <code>{update.from_user.first_name} {update.from_user.last_name}</code>\n"
             f"🎮 Username: <code>@{update.from_user.username}</code>\n"
             f"📱 Phone: <code>{user.phone_number}</code>\n"
             f"🔐 Captcha: <code>{captcha_status_text}</code>\n"

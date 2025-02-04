@@ -16,7 +16,7 @@ from handlers.check_subscription import check_subscription
 from handlers.start_cmd import start_cmd
 from keybords.reply import create_keyboard
 from queries.captcha_queries import mark_captcha_passed
-from queries.user_queries import add_user, get_user
+from queries.user_queries import get_user, create_telegram_user
 from states.registration_state import RegistrationStates
 
 captcha_router = Router()
@@ -73,6 +73,7 @@ async def send_captcha(message: Message, user_id: int, words: list, word_to_stic
 
 async def check_captcha(callback: types.CallbackQuery, state: FSMContext):
     user_id = callback.from_user.id
+
     try:
         if callback.data == correct_sticker.get(user_id):
             if await mark_captcha_passed(user_id, callback.data):
@@ -87,7 +88,8 @@ async def check_captcha(callback: types.CallbackQuery, state: FSMContext):
                     else:
                         kb = create_keyboard(("🔄 Check subscription", "check_subscription"))
                         await callback.message.answer(
-                            f"🚫 Please subscribe to the channels to use the bot:\n[Subscribe to the channel]({CHANNEL_LINK})",
+                            f"🚫 Please subscribe to the channels to use the bot:"
+                            f"\n[Subscribe to the channel]({CHANNEL_LINK})",
                             reply_markup=kb,
                             parse_mode='Markdown'
                         )
@@ -114,16 +116,9 @@ async def check_captcha(callback: types.CallbackQuery, state: FSMContext):
 @captcha_router.message(CommandStart())
 async def captcha_cmd(message: types.Message):
     user_id = message.from_user.id
-    first_name = message.from_user.first_name or "Unknown"
     user = await get_user(user_id)
 
-    if not user:
-        user = await add_user(
-            user_id=user_id,
-            first_name=first_name,
-        )
-
-    if user is None:
+    if not user or user is None:
         await message.answer("Error creating user. Please try again.")
         return
 
