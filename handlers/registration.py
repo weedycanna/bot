@@ -14,7 +14,8 @@ from app import CHANNEL_LINK
 from django_project.telegrambot.usersmanage.models import CaptchaRecord, Order
 from filters.chat_types import ChatTypeFilter
 from handlers.captcha import (has_passed_captcha_recently, send_captcha,
-                              stickers, word_to_sticker, words)
+                              stickers_in_captcha, word_to_sticker,
+                              words_in_captcha)
 from handlers.check_subscription import check_subscription
 from handlers.start_cmd import start_cmd
 from keybords.inline import MenuCallBack, get_inline_back_button
@@ -37,11 +38,11 @@ async def start_registration(message: types.Message, state: FSMContext):
         if await has_passed_captcha_recently(user_id):
             await start_cmd(message)
         else:
-            await send_captcha(message, user_id, words, word_to_sticker, stickers)
+            await send_captcha(message, user_id, words_in_captcha, word_to_sticker, stickers_in_captcha)
         return
 
     if not await has_passed_captcha_recently(user_id):
-        await send_captcha(message, user_id, words, word_to_sticker, stickers)
+        await send_captcha(message, user_id, words_in_captcha, word_to_sticker, stickers_in_captcha)
         return
 
     await message.answer("Please enter your name:")

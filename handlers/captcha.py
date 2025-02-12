@@ -16,31 +16,31 @@ from handlers.check_subscription import check_subscription
 from handlers.start_cmd import start_cmd
 from keybords.reply import create_keyboard
 from queries.captcha_queries import mark_captcha_passed
-from queries.user_queries import get_user, create_telegram_user
+from queries.user_queries import get_user
 from states.registration_state import RegistrationStates
 
 captcha_router = Router()
 captcha_router.message.filter(ChatTypeFilter(["private"]))
 
 
-stickers: list[Any] = ["🍎", "🚗", "🍬", "⚽", "🪑", "⌚"]
-words: list[Any] = ["apple", "car", "candy", "ball", "chair", "watch"]
+stickers_in_captcha: list[Any] = ["🍎", "🚗", "🍬", "⚽", "🪑", "⌚"]
+words_in_captcha: list[Any] = ["apple", "car", "candy", "ball", "chair", "watch"]
 correct_sticker: dict = {}
 captcha_checked: dict = {}
 
-word_to_sticker = dict(zip(words, stickers))
+word_to_sticker = dict(zip(words_in_captcha, stickers_in_captcha))
 
 
 async def has_passed_captcha_recently(user_id: int) -> bool:
     try:
-        two_weeks_ago = timezone.now() - timezone.timedelta(weeks=2)
+        time_expiration = timezone.now() - timezone.timedelta(weeks=2)
         user = await get_user(user_id)
         if not user:
             return False
 
         record = await sync_to_async(
             CaptchaRecord.objects.filter(
-                user=user, timestamp__gt=two_weeks_ago, is_passed=True
+                user=user, timestamp__gt=time_expiration, is_passed=True
             ).exists
         )()
 
@@ -112,7 +112,6 @@ async def check_captcha(callback: types.CallbackQuery, state: FSMContext):
         await callback.answer("An error occurred. Please try again.")
 
 
-
 @captcha_router.message(CommandStart())
 async def captcha_cmd(message: types.Message):
     user_id = message.from_user.id
@@ -133,5 +132,4 @@ async def captcha_cmd(message: types.Message):
                 parse_mode='Markdown'
             )
     else:
-        await send_captcha(message, user_id, words, word_to_sticker, stickers)
-
+        await send_captcha(message, user_id, words_in_captcha, word_to_sticker, stickers_in_captcha)

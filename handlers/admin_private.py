@@ -25,7 +25,6 @@ from states.banner_state import AddBanner
 from states.newsletter import Newsletter
 from states.product_state import AddProduct
 
-
 admin_router = Router()
 admin_router.message.filter(ChatTypeFilter(["private"]), IsAdmin())
 

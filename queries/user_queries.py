@@ -1,7 +1,5 @@
-from typing import Optional, Union
-
 from asgiref.sync import sync_to_async
-from django.db import IntegrityError, transaction
+from django.db import transaction
 
 from django_project.telegrambot.usersmanage.models import TelegramUser
 

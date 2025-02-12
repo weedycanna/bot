@@ -1,5 +1,6 @@
-from typing import Union
 from http import HTTPStatus
+from typing import Union
+
 import aiohttp
 
 
