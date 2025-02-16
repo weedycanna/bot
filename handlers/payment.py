@@ -27,3 +27,5 @@ async def convert_to_crypto(amount: float, fiat: str, crypto: str) -> Union[floa
         return None
 
     return amount / rate
+
+

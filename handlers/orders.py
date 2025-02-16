@@ -16,7 +16,7 @@ from django.conf import settings
 from app import crypto_client
 from callbacks.callbacks import OrderDetailCallBack
 from filters.chat_types import ChatTypeFilter
-from handlers.payment import convert_to_crypto
+from handlers.payment import convert_to_crypto, get_crypto_rate
 from keybords.inline import (MenuCallBack, get_order_details_keyboard,
                              get_select_payment_keyboard, get_user_main_btns)
 from keybords.reply import get_back_button
@@ -232,7 +232,8 @@ async def handle_star_payment(callback: CallbackQuery, state: FSMContext):
     try:
         user_data = await state.get_data()
         amount_usd = user_data.get('amount_usd')
-        stars_amount = int(amount_usd * 35)
+        star_rate = 0.0187
+        stars_amount = int(float(amount_usd) / star_rate)
 
         kb = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text=f"Pay {stars_amount} Stars ⭐", pay=True)],

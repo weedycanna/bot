@@ -21,7 +21,7 @@ bot = Bot(
 CRYPTO_TOKEN = os.getenv("CRYPTO_TOKEN")
 crypto_client = AioCryptoPay(CRYPTO_TOKEN, network=Networks.TEST_NET)
 
-bot.my_admins_list: list[int, ] = [1508532435]
+bot.my_admins_list: list[int, ] = []
 CHANNEL_ID: str = os.getenv("CHANNEL_ID")
 CHANNEL_LINK: str = os.getenv("CHANNEL_LINK")
 
