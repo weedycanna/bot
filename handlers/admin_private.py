@@ -74,10 +74,12 @@ async def show_statistics(message: types.Message):
     category_stats_lines = [f"{category}: {count}" for category, count in category_stats.items()]
     category_stats_text = textwrap.indent("\n".join(category_stats_lines), "        ")
 
-    await message.answer(f"📊 Statistics:\n👥 Total users: {users} \n"
-                         f"🛒 Total orders: {orders} \n"
-                         f"📦 Total products: {products} \n"
-                         f"📂 Products by Category:\n {category_stats_text}")
+    await message.answer(
+        f"📊 Statistics:\n👥 Total users: {users} \n"
+        f"🛒 Total orders: {orders} \n"
+        f"📦 Total products: {products} \n"
+        f"📂 Products by Category:\n {category_stats_text}"
+    )
 
 
 @admin_router.callback_query(F.data.startswith("category_"))
@@ -395,7 +397,7 @@ async def newsletter(message: types.Message, state: FSMContext):
 @admin_router.message(Newsletter.waiting_for_content)
 async def process_newsletter(message: types.Message, state: FSMContext):
     users = TelegramUser.objects.all()
-    start_time = datetime.now()
+    start_time = datetime.datetime.now()
     error_count = 0
     for user in users:
         try:
@@ -404,9 +406,11 @@ async def process_newsletter(message: types.Message, state: FSMContext):
             error_count += 1
             continue
 
-    await message.answer("<b> 🎉 Newsletter sent successfully! \n\n"
-                        f"✅ Sent to: {len(users) - error_count}\n"
-                        f"❌ Errors occurred while sending: {error_count}\n"
-                        f"⏳ Time taken: <code>{(datetime.now() - start_time).total_seconds():.2} sec.</code></b>")
+    await message.answer(
+        "<b> 🎉 Newsletter sent successfully! \n\n"
+        f"✅ Sent to: {len(users) - error_count}\n"
+        f"❌ Errors occurred while sending: {error_count}\n"
+        f"⏳ Time taken: <code>{(datetime.datetime.now() - start_time).total_seconds():.2} sec.</code></b>"
+    )
 
     await state.clear()

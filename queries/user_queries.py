@@ -6,32 +6,32 @@ from django_project.telegrambot.usersmanage.models import TelegramUser
 
 @sync_to_async
 def create_telegram_user(
-   user_id: int,
-   first_name: str,
-   phone_number: str
+    user_id: int,
+    first_name: str,
+    phone_number: str
 ):
-   try:
-       with transaction.atomic():
-           if TelegramUser.objects.filter(phone_number=phone_number).exclude(user_id=user_id).exists():
-               return None
+    try:
+        with transaction.atomic():
+            if TelegramUser.objects.filter(phone_number=phone_number).exclude(user_id=user_id).exists():
+                return None
 
-           user = TelegramUser.objects.filter(user_id=user_id).first()
+            user = TelegramUser.objects.filter(user_id=user_id).first()
 
-           if user:
-               user.first_name = first_name
-               user.phone_number = phone_number
-               user.save()
-           else:
-               user = TelegramUser.objects.create(
-                   user_id=user_id,
-                   first_name=first_name,
-                   phone_number=phone_number
-               )
+            if user:
+                user.first_name = first_name
+                user.phone_number = phone_number
+                user.save()
+            else:
+                user = TelegramUser.objects.create(
+                    user_id=user_id,
+                    first_name=first_name,
+                    phone_number=phone_number
+                )
 
-           return user
+            return user
 
-   except Exception:
-       return None
+    except Exception:
+        return None
 
 
 @sync_to_async

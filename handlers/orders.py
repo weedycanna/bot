@@ -16,7 +16,7 @@ from django.conf import settings
 from app import crypto_client
 from callbacks.callbacks import OrderDetailCallBack
 from filters.chat_types import ChatTypeFilter
-from handlers.payment import convert_to_crypto, get_crypto_rate
+from handlers.payment import convert_to_crypto
 from keybords.inline import (MenuCallBack, get_order_details_keyboard,
                              get_select_payment_keyboard, get_user_main_btns)
 from keybords.reply import get_back_button
@@ -134,6 +134,7 @@ async def select_payment_method(callback: CallbackQuery, state: FSMContext):
         reply_markup=keyboard,
         parse_mode="HTML"
     )
+
 
 @order_router.callback_query(F.data.startswith("crypto_"))
 async def process_crypto_payment(callback: CallbackQuery, state: FSMContext):
@@ -258,7 +259,7 @@ async def handle_star_payment(callback: CallbackQuery, state: FSMContext):
         )
 
     except Exception:
-        await callback.answer(f"Error processing Star payment", show_alert=True)
+        await callback.answer("Error processing Star payment", show_alert=True)
 
 
 async def check_payment(invoice_id, user_id, amount, crypto, bot, state, user_data):
@@ -313,7 +314,7 @@ async def check_payment(invoice_id, user_id, amount, crypto, bot, state, user_da
                     )
                     await state.clear()
                     return
-                except Exception as e:
+                except Exception:
                     await bot.send_message(
                         user_id,
                         "❌ <b>Payment received but order creation failed.</b>\n"
@@ -453,10 +454,9 @@ async def process_orders_command(update: Union[CallbackQuery, Message]):
             )
 
 
-
 @order_router.callback_query(OrderDetailCallBack.filter())
 async def process_order_detail(
-    callback: CallbackQuery, callback_data: OrderDetailCallBack
+        callback: CallbackQuery, callback_data: OrderDetailCallBack
 ):
     try:
         order = await get_order_by_id(callback_data.order_id)
@@ -479,7 +479,7 @@ async def process_order_detail(
             f"📦 Status: {order.status}\n"
             f"📍 Address: {order.address}\n"
             f"📱 Phone: {order.phone}\n\n"
-            f"📝 Items in order:\n\n"
+            f"📝 Items in order: \n\n"
         )
 
         for item in items:

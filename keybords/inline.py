@@ -274,7 +274,6 @@ def get_order_details_keyboard(orders):
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
 
 
-
 def get_inline_back_button():
     return InlineKeyboardMarkup(
         inline_keyboard=[

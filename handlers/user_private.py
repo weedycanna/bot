@@ -147,7 +147,6 @@ async def process_menu_command(update: Union[CallbackQuery, Message]):
         await update.answer(error_message, show_alert=True)
 
 
-
 @user_private_router.message(Command("clear"))
 async def clear_private_user(message: types.Message, bot: Bot) -> None:
     try:
