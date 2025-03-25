@@ -9,14 +9,12 @@ from aiogram.types import (CallbackQuery, FSInputFile, InputMediaPhoto,
 from django.conf import settings
 from django.utils import timezone
 from phonenumbers import NumberParseException
+from  handlers.captcha import CaptchaManager
 
 from app import CHANNEL_LINK
 from django_project.telegrambot.usersmanage.models import CaptchaRecord, Order
 from filters.chat_types import ChatTypeFilter
-from handlers.captcha import (has_passed_captcha_recently, send_captcha,
-                              stickers_in_captcha, word_to_sticker,
-                              words_in_captcha)
-from handlers.check_subscription import check_subscription
+from handlers.check_subscription import CheckSubscription
 from handlers.start_cmd import start_cmd
 from keybords.inline import MenuCallBack, get_inline_back_button
 from keybords.reply import create_keyboard, get_back_button
@@ -35,14 +33,14 @@ async def start_registration(message: types.Message, state: FSMContext):
     user = await get_user(user_id)
 
     if user and user.phone_number:
-        if await has_passed_captcha_recently(user_id):
+        if await CaptchaManager.has_passed_recently(user_id):
             await start_cmd(message)
         else:
-            await send_captcha(message, user_id, words_in_captcha, word_to_sticker, stickers_in_captcha)
+            await CaptchaManager.send_new_captcha(message, user_id)
         return
 
-    if not await has_passed_captcha_recently(user_id):
-        await send_captcha(message, user_id, words_in_captcha, word_to_sticker, stickers_in_captcha)
+    if not await CaptchaManager.has_passed_recently(user_id):
+        await CaptchaManager.send_new_captcha(message, user_id)
         return
 
     await message.answer("Please enter your name:")
@@ -112,7 +110,7 @@ async def process_phone(message: types.Message, state: FSMContext):
             f"Phone: {formatted_phone}"
         )
 
-        if await check_subscription(user_id):
+        if await CheckSubscription.check_member_subscription(user_id):
             await start_cmd(message)
         else:
             kb = create_keyboard(("🔄 Check subscription", "check_subscription"))

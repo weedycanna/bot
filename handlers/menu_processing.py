@@ -13,7 +13,7 @@ from queries.products_queries import get_products
 from utils.paginator import Paginator
 
 
-async def main_menu(level: int, menu_name: str):
+async def main_menu(level: int, menu_name: str) -> tuple:
 
     banner = await get_banner(menu_name)
 
@@ -32,7 +32,7 @@ async def main_menu(level: int, menu_name: str):
     return image, kbds
 
 
-async def catalog(level: int, menu_name: str):
+async def catalog(level: int, menu_name: str) -> tuple:
 
     banner = await get_banner(menu_name)
 
@@ -53,7 +53,7 @@ async def catalog(level: int, menu_name: str):
     return image, kbds
 
 
-async def pages(paginator: Paginator):
+async def pages(paginator: Paginator) -> dict:
     btns = dict()
     if paginator.has_previous():
         btns["◀ Prev"] = "previous"

@@ -9,7 +9,7 @@ def create_telegram_user(
     user_id: int,
     first_name: str,
     phone_number: str
-):
+) -> TelegramUser | None:
     try:
         with transaction.atomic():
             if TelegramUser.objects.filter(phone_number=phone_number).exclude(user_id=user_id).exists():
@@ -30,7 +30,7 @@ def create_telegram_user(
 
             return user
 
-    except Exception:
+    except TelegramUser.DoesNotExist:
         return None
 
 

@@ -6,11 +6,12 @@ from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
+from handlers.captcha import EMOJI_LIST, process_captcha_callback
 
 from django_project.telegrambot.usersmanage.models import Banner
 from filters.chat_types import ChatTypeFilter
 from handlers.admin_private import category_choice
-from handlers.captcha import check_captcha, has_passed_captcha_recently
+from handlers.captcha import CaptchaManager
 from handlers.menu_processing import get_menu_content
 from keybords.inline import MenuCallBack, get_user_catalog_btns
 from queries.banner_queries import get_banner
@@ -24,7 +25,12 @@ user_private_router.message.filter(ChatTypeFilter(["private"]))
 @user_private_router.callback_query()
 async def process_callback(callback: types.CallbackQuery, state: FSMContext):
     user_id = callback.from_user.id
-    if await has_passed_captcha_recently(user_id):
+
+    if callback.data in EMOJI_LIST:
+        await process_captcha_callback(callback, state)
+        return
+
+    if await CaptchaManager.has_passed_recently(user_id):
         try:
             callback_data = callback.data.split(":")
             if len(callback_data) == 1:
@@ -35,7 +41,8 @@ async def process_callback(callback: types.CallbackQuery, state: FSMContext):
         except ValueError:
             await callback.answer("Unrecognized action.", show_alert=True)
     else:
-        await check_captcha(callback, state)
+        await callback.answer("Please complete the captcha first.")
+        await CaptchaManager.send_new_captcha(callback.message, user_id)
 
 
 @user_private_router.callback_query(MenuCallBack.filter())

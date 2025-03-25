@@ -16,7 +16,7 @@ from django.conf import settings
 from app import crypto_client
 from callbacks.callbacks import OrderDetailCallBack
 from filters.chat_types import ChatTypeFilter
-from handlers.payment import convert_to_crypto
+from handlers.payment import CryptoApiManager
 from keybords.inline import (MenuCallBack, get_order_details_keyboard,
                              get_select_payment_keyboard, get_user_main_btns)
 from keybords.reply import get_back_button
@@ -129,56 +129,58 @@ async def select_payment_method(callback: CallbackQuery, state: FSMContext):
 
     keyboard = get_select_payment_keyboard()
 
-    await callback.message.edit_text(
-        "<b>💳 Select Payment Method:</b>",
-        reply_markup=keyboard,
-        parse_mode="HTML"
-    )
+    await callback.message.edit_text("<b>💳 Select Payment Method:</b>", reply_markup=keyboard, parse_mode="HTML")
 
 
 @order_router.callback_query(F.data.startswith("crypto_"))
 async def process_crypto_payment(callback: CallbackQuery, state: FSMContext):
     try:
         user_data = await state.get_data()
-        amount_usd = user_data.get('amount_usd')
+        amount_usd = user_data.get("amount_usd")
         crypto = callback.data.split("_")[1]
 
         try:
-            crypto_amount = await convert_to_crypto(float(amount_usd), 'USD', crypto)
+            rate = await CryptoApiManager.get_crypto_rate(crypto, "USD")
 
-            if crypto_amount is None:
+            if rate is None:
                 await callback.answer("❌ Error getting exchange rate. Please try again.", show_alert=True)
                 return
 
+            crypto_amount = await CryptoApiManager.convert_to_crypto(float(amount_usd), "USD", crypto)
+
+            if crypto_amount is None:
+                await callback.answer("❌ Error calculating crypto amount. Please try again.", show_alert=True)
+                return
+
             invoice = await crypto_client.create_invoice(
-                asset=crypto,
-                amount=crypto_amount,
-                description=f"Order payment for {callback.from_user.id}"
+                asset=crypto, amount=crypto_amount, description=f"Order payment for {callback.from_user.id}"
             )
-        except Invoice.DoesNotExist:
+        except Exception as e:
             await callback.answer("❌ Error creating crypto invoice. Please try again.", show_alert=True)
             return
 
-        if not invoice or not hasattr(invoice, 'invoice_id') or not hasattr(invoice, 'bot_invoice_url'):
+        if not invoice or not hasattr(invoice, "invoice_id") or not hasattr(invoice, "bot_invoice_url"):
             await callback.answer("❌ Invalid payment response. Please try again.", show_alert=True)
             return
 
         expiration_time = datetime.now() + timedelta(minutes=3)
 
         try:
-            await state.update_data({
-                'invoice_id': invoice.invoice_id,
-                'payment_crypto': crypto,
-                'expiration_time': expiration_time.timestamp()
-            })
-        except Exception:
+            await state.update_data(
+                {
+                    "invoice_id": invoice.invoice_id,
+                    "payment_crypto": crypto,
+                    "expiration_time": expiration_time.timestamp(),
+                }
+            )
+        except Exception as e:
             await callback.answer("❌ Error saving payment data. Please try again.", show_alert=True)
             return
 
         keyboard = InlineKeyboardMarkup(
             inline_keyboard=[
                 [InlineKeyboardButton(text=f"Pay with {crypto} 💳", url=invoice.bot_invoice_url)],
-                [InlineKeyboardButton(text="Cancel ❌", callback_data="cancel_order")]
+                [InlineKeyboardButton(text="Cancel ❌", callback_data="cancel_order")],
             ]
         )
 
@@ -199,32 +201,17 @@ async def process_crypto_payment(callback: CallbackQuery, state: FSMContext):
         """)
 
         try:
-            await callback.message.edit_text(
-                payment_message,
-                reply_markup=keyboard,
-                parse_mode="HTML"
-            )
-        except Exception:
+            await callback.message.edit_text(payment_message, reply_markup=keyboard, parse_mode="HTML")
+        except Exception as e:
             await callback.answer("❌ Error displaying payment details. Please try again.", show_alert=True)
             return
 
         asyncio.create_task(
-            check_payment(
-                invoice.invoice_id,
-                callback.from_user.id,
-                amount_usd,
-                crypto,
-                callback.bot,
-                state,
-                user_data
-            )
+            check_payment(invoice.invoice_id, callback.from_user.id, amount_usd, crypto, callback.bot, state, user_data)
         )
 
-    except Exception:
-        await callback.answer(
-            "❌ Payment processing error. Please try again or contact support.",
-            show_alert=True
-        )
+    except Exception as e:
+        await callback.answer("❌ Payment processing error. Please try again or contact support.", show_alert=True)
         return
 
 
