@@ -34,7 +34,7 @@ CAPTCHA_OPTIONS: List[Tuple[str, str]] = [
 ]
 
 WORDS_TO_EMOJI: Dict[str, str] = {word: emoji for word, emoji in CAPTCHA_OPTIONS}
-EMOJI_LIST: List[str] = [emojie for _, emojie in CAPTCHA_OPTIONS]
+EMOJI_LIST: List[str] = [emoji for _, emoji in CAPTCHA_OPTIONS]
 WORDS_LIST: List[str] = [word for word, _ in CAPTCHA_OPTIONS]
 
 user_captcha_data: Dict[int, Dict[str, Any]] = {}
@@ -74,7 +74,7 @@ class CaptchaManager:
         return selected_word, correct_emoji, keyboard
 
     @staticmethod
-    def get_captcha_test(word: str) -> str:
+    def get_captcha_text(word: str) -> str:
         """Generate the captcha message text."""
 
         return (
@@ -96,7 +96,7 @@ class CaptchaManager:
         }
 
         await message.answer(
-            CaptchaManager.get_captcha_test(word),
+            CaptchaManager.get_captcha_text(word),
             reply_markup=keyboard,
             parse_mode="HTML",
         )
@@ -113,7 +113,7 @@ class CaptchaManager:
         }
 
         await callback.message.edit_text(
-            CaptchaManager.get_captcha_test(word),
+            CaptchaManager.get_captcha_text(word),
             reply_markup=keyboard,
             parse_mode="HTML",
         )
