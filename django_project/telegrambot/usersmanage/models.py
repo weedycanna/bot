@@ -73,7 +73,7 @@ class AdminUser(AbstractUser):
         return f"{self.username}"
 
 
-class TelegramUser(models.Model):
+class TelegramUser(TimeBasedModel):
     id = models.AutoField(primary_key=True)
     user_id = models.BigIntegerField(unique=True)
     first_name = models.CharField(
@@ -82,8 +82,6 @@ class TelegramUser(models.Model):
     phone_number = PhoneNumberField(
         _("phone number"), unique=True
     )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name = _("Telegram User")
