@@ -4,12 +4,12 @@ from typing import Union
 from aiogram import F, Router, types
 from aiogram.filters import Command, CommandStart, StateFilter
 from aiogram.fsm.context import FSMContext
-from aiogram.types import (CallbackQuery, FSInputFile, InputMediaPhoto,
-                           Message, ReplyKeyboardRemove)
+from aiogram.types import CallbackQuery, FSInputFile, InputMediaPhoto, Message, ReplyKeyboardRemove
 from django.conf import settings
 from django.utils import timezone
 from phonenumbers import NumberParseException
-from  handlers.captcha import CaptchaManager
+from app_config import bot_messages
+from handlers.captcha import CaptchaManager
 
 from app import CHANNEL_LINK
 from django_project.telegrambot.usersmanage.models import CaptchaRecord, Order
@@ -43,24 +43,20 @@ async def start_registration(message: types.Message, state: FSMContext):
         await CaptchaManager.send_new_captcha(message, user_id)
         return
 
-    await message.answer("Please enter your name:")
+    await message.answer(bot_messages.get("first_name_request"))
     await state.set_state(RegistrationStates.first_name)
 
 
 @registration_router.message(StateFilter(RegistrationStates.first_name))
 async def process_first_name(message: types.Message, state: FSMContext):
     if len(message.text) > 30:
-        await message.answer(
-            "❌ The name is too long. Please enter a name shorter than 30 characters."
-        )
+        await message.answer(bot_messages.get("name_too_long"))
         return
 
     await state.update_data(first_name=message.text)
     await state.set_state(RegistrationStates.phone)
     await message.answer(
-        "Now, please enter your phone number\n"
-        "📱 The phone number format should be +7xxxxxxxxxx \n"
-        "⚠️ Attention! The phone number must be unique",
+        bot_messages.get("phone_request"),
         reply_markup=get_back_button(),
         parse_mode="HTML",
     )
@@ -68,71 +64,50 @@ async def process_first_name(message: types.Message, state: FSMContext):
 
 @registration_router.message(StateFilter(RegistrationStates.phone))
 async def process_phone(message: types.Message, state: FSMContext):
-    if message.text == "⬅️ Back":
+    if message.text == bot_messages.get("back_button"):
         await state.set_state(RegistrationStates.first_name)
-        await message.answer(
-            "Please enter your name:", reply_markup=ReplyKeyboardRemove()
-        )
+        await message.answer(bot_messages.get("first_name_request"), reply_markup=ReplyKeyboardRemove())
         return
 
     try:
         formatted_phone = format_phone_number(message.text)
         if not formatted_phone:
-            await message.answer(
-                "❌ Invalid phone number format. Please enter the number in international format\n"
-                "Examples:\n"
-                "+380 XX XXX XXXX\n"
-                "+7 XXX XXX XXXX"
-            )
+            await message.answer(bot_messages.get("invalid_phone_format"))
             return
 
         user_data = await state.get_data()
 
         user_id = message.from_user.id
         user = await create_telegram_user(
-            user_id=user_id,
-            first_name=user_data["first_name"],
-            phone_number=formatted_phone
+            user_id=user_id, first_name=user_data["first_name"], phone_number=formatted_phone
         )
 
         if not user:
-            await message.answer(
-                "❌ This phone number is already registered with another account. "
-                "Please use a different phone number or contact the administrator."
-            )
+            await message.answer(bot_messages.get("phone_already_registered"))
             return
 
         await state.clear()
 
         await message.answer(
-            "✅ Registration completed successfully!\n"
-            f"Name: {user_data['first_name']}\n"
-            f"Phone: {formatted_phone}"
+            bot_messages.get("registration_complete_with_data", name=user_data["first_name"], phone=formatted_phone)
         )
 
         if await CheckSubscription.check_member_subscription(user_id):
             await start_cmd(message)
         else:
-            kb = create_keyboard(("🔄 Check subscription", "check_subscription"))
+            kb = create_keyboard((bot_messages.get("check_subscription_button"), "check_subscription"))
             await message.answer(
-                f"🚫 Please subscribe to the channels to use the bot:\n[Subscribe to the channel]({CHANNEL_LINK})",
+                bot_messages.get("subscription_required", channel_link=CHANNEL_LINK),
                 reply_markup=kb,
-                parse_mode='Markdown'
+                parse_mode="Markdown",
             )
 
     except NumberParseException:
-        await message.answer(
-            "❌ Invalid phone number format. Please enter the number in international format "
-            "(for example, +79123456789):"
-        )
+        await message.answer(bot_messages.get("invalid_phone_format_intl"))
     except ValueError:
-        await message.answer(
-            "❌ Invalid phone number format. Please try again."
-        )
+        await message.answer(bot_messages.get("invalid_phone_retry"))
     except Exception:
-        await message.answer(
-            "❌ An error occurred during registration. Please try again later."
-        )
+        await message.answer(bot_messages.get("registration_error"))
 
 
 @registration_router.message(Command("profile"))
@@ -152,37 +127,42 @@ async def process_profile_command(update: Union[CallbackQuery, Message]):
         orders = Order.objects.filter(user_id=user.id)
 
         captcha_status = CaptchaRecord.objects.filter(user_id=user.id).first()
-        captcha_status_text = "✅ Passed" if (captcha_status and captcha_status.is_passed) else "❌ Not passed"
+        captcha_status_text = (
+            bot_messages.get("captcha_passed")
+            if (captcha_status and captcha_status.is_passed)
+            else bot_messages.get("captcha_not_passed")
+        )
 
         days_in_bot = (timezone.now() - user.created_at).days
 
-        profile_text = (
-            f"<b>⚡️ Profile</b>\n"
-            f"👉🏼 ID: <code>{user_id}</code>\n"
-            f"➖➖➖➖➖➖➖➖➖➖➖➖\n\n"
-            f"⚙️ Fullname: <code>{update.from_user.first_name} {update.from_user.last_name}</code>\n"
-            f"🎮 Username: <code>@{update.from_user.username}</code>\n"
-            f"📱 Phone: <code>{user.phone_number}</code>\n"
-            f"🔐 Captcha: <code>{captcha_status_text}</code>\n"
-            f"➖➖➖➖➖➖➖➖➖➖➖➖\n\n"
-            f"📊 Statistics:\n"
-            f"📅 Days in bot: <code>{days_in_bot}</code>\n"
-            f"📦 Total orders: <code>{len(orders)}</code>\n"
-            f"➖➖➖➖➖➖➖➖➖➖➖➖\n\n"
-            f"📆 Registration date: <code>{user.created_at.strftime('%d.%m.%Y')}</code>"
+        first_name = update.from_user.first_name or ""
+        last_name = update.from_user.last_name or ""
+        username = update.from_user.username or ""
+
+        profile_text = bot_messages.get(
+            "profile_text",
+            user_id=user_id,
+            first_name=first_name,
+            last_name=last_name,
+            username=username,
+            phone=user.phone_number,
+            captcha_status=captcha_status_text,
+            days_in_bot=days_in_bot,
+            orders_count=len(orders),
+            registration_date=user.created_at.strftime("%d.%m.%Y"),
         )
 
         banner = await get_banner("profile")
 
         if not banner:
-            raise ValueError("Banner not found")
+            raise ValueError(bot_messages.get("banner_not_found"))
 
         if not banner.image:
-            raise ValueError("Banner has no image")
+            raise ValueError(bot_messages.get("banner_no_image"))
 
         image_path = os.path.join(settings.MEDIA_ROOT, str(banner.image))
         if not os.path.exists(image_path):
-            raise FileNotFoundError(f"Banner image not found: {image_path}")
+            raise FileNotFoundError(bot_messages.get("banner_image_not_found", path=image_path))
 
         media = InputMediaPhoto(
             media=FSInputFile(image_path),
@@ -205,5 +185,5 @@ async def process_profile_command(update: Union[CallbackQuery, Message]):
 
     except (FileNotFoundError, AttributeError, OSError, TypeError):
         await update.answer(
-            "An error occurred while loading the profile", show_alert=True
+            bot_messages.get("profile_load_error"), show_alert=True
         )

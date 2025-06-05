@@ -6,6 +6,7 @@ from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
+from app_config import bot_messages
 from handlers.captcha import EMOJI_LIST, process_captcha_callback
 
 from django_project.telegrambot.usersmanage.models import Banner
@@ -39,9 +40,9 @@ async def process_callback(callback: types.CallbackQuery, state: FSMContext):
                 callback_data = MenuCallBack.unpack(callback.data)
                 await user_menu(callback, callback_data)
         except ValueError:
-            await callback.answer("Unrecognized action.", show_alert=True)
+            await callback.answer(bot_messages.get("unrecognized_action"), show_alert=True)
     else:
-        await callback.answer("Please complete the captcha first.")
+        await callback.answer(bot_messages.get("complete_captcha_first"))
         await CaptchaManager.send_new_captcha(callback.message, user_id)
 
 
@@ -54,9 +55,9 @@ async def user_menu(callback: types.CallbackQuery, callback_data: MenuCallBack):
         )
 
         if cart_item:
-            await callback.answer("Product added to cart.")
+            await callback.answer(bot_messages.get("product_added_to_cart"))
         else:
-            await callback.answer("Error adding product to cart.")
+            await callback.answer(bot_messages.get("error_adding_to_cart"))
         return
 
     media, reply_markup = await get_menu_content(
@@ -102,7 +103,7 @@ async def process_menu_command(update: Union[CallbackQuery, Message]):
             try:
                 categories = await get_categories()
                 if not categories:
-                    await target.answer("Categories not found")
+                    await target.answer(bot_messages.get("categories_not_found"))
                     return
 
                 banner = await get_banner(menu_name)
@@ -110,7 +111,7 @@ async def process_menu_command(update: Union[CallbackQuery, Message]):
                 if banner and banner.image:
                     await target.answer_photo(
                         photo=banner.image,
-                        caption=f"<b>{banner.description}</b>\n\nSelect a category:",
+                        caption=bot_messages.get("menu_banner_with_image", description=banner.description),
                         reply_markup=get_user_catalog_btns(
                             level=1, categories=categories
                         ),
@@ -118,7 +119,7 @@ async def process_menu_command(update: Union[CallbackQuery, Message]):
                     )
                 else:
                     await target.answer(
-                        text="Select a category:",
+                        text=bot_messages.get("select_category"),
                         reply_markup=get_user_catalog_btns(
                             level=1, categories=categories
                         ),
@@ -126,7 +127,7 @@ async def process_menu_command(update: Union[CallbackQuery, Message]):
                     )
                 return
             except Banner.DoesNotExist:
-                await target.answer("Error loading menu")
+                await target.answer(bot_messages.get("error_loading_menu"))
                 return
 
         image, keyboard = await get_menu_content(
@@ -150,7 +151,7 @@ async def process_menu_command(update: Union[CallbackQuery, Message]):
             )
 
     except (FileNotFoundError, AttributeError, OSError, TypeError):
-        error_message = f"Error opening menu {menu_name}"
+        error_message = bot_messages.get("error_opening_menu", menu_name=menu_name)
         await update.answer(error_message, show_alert=True)
 
 
@@ -173,7 +174,7 @@ async def clear_private_user(message: types.Message, bot: Bot) -> None:
                 continue
 
         if deleted_count > 0:
-            notification = await message.answer(f"Deleted {deleted_count} messages!")
+            notification = await message.answer(bot_messages.get("messages_deleted", count=deleted_count))
             await asyncio.sleep(3)
             try:
                 await notification.delete()
@@ -181,4 +182,4 @@ async def clear_private_user(message: types.Message, bot: Bot) -> None:
                 pass
 
     except ValueError:
-        await message.answer("Invalid command format. Use: /clear or /clear <number>")
+        await message.answer(bot_messages.get("invalid_clear_format"))

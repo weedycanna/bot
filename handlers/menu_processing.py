@@ -2,6 +2,7 @@ import os
 
 from aiogram.types import FSInputFile, InputMediaPhoto
 from django.conf import settings
+from app_config import bot_messages
 
 from keybords.inline import (get_products_btns, get_user_cart,
                              get_user_catalog_btns, get_user_main_btns)
@@ -24,9 +25,9 @@ async def main_menu(level: int, menu_name: str) -> tuple:
                 media=FSInputFile(image_path), caption=banner.description
             )
         else:
-            raise FileNotFoundError(f"Banner image not found: {image_path}")
+            raise FileNotFoundError(bot_messages.get("banner_image_not_found", path=image_path))
     else:
-        raise ValueError("Banner not found or has no image")
+        raise ValueError(bot_messages.get("banner_not_found_or_no_image"))
 
     kbds = get_user_main_btns(level=level)
     return image, kbds
@@ -43,9 +44,9 @@ async def catalog(level: int, menu_name: str) -> tuple:
                 media=FSInputFile(image_path), caption=banner.description
             )
         else:
-            raise FileNotFoundError(f"Banner image not found: {image_path}")
+            raise FileNotFoundError(bot_messages.get("banner_image_not_found", path=image_path))
     else:
-        raise ValueError("Banner not found or has no image")
+        raise ValueError(bot_messages.get("banner_not_found_or_no_image"))
 
     categories = await get_categories()
     kbds = get_user_catalog_btns(level=level, categories=categories)
@@ -56,10 +57,10 @@ async def catalog(level: int, menu_name: str) -> tuple:
 async def pages(paginator: Paginator) -> dict:
     btns = dict()
     if paginator.has_previous():
-        btns["◀ Prev"] = "previous"
+        btns[bot_messages.get("prev_button")] = "previous"
 
     if paginator.has_next():
-        btns["Next ▶"] = "next"
+        btns[bot_messages.get("next_button")] = "next"
 
     return btns
 
@@ -73,12 +74,15 @@ async def products(level: int, category: int, page: int):
     if product.image:
         image = InputMediaPhoto(
             media=FSInputFile(product.image.path),
-            caption=f"<strong>{product.name}\
-                </strong>\n{product.description}\nPrice: {round(product.price, 2)}\n\
-                <strong>Good {paginator.page} of {paginator.pages}</strong>",
+            caption=bot_messages.get("product_details",
+                                  name=product.name,
+                                  description=product.description,
+                                  price=round(product.price, 2),
+                                  current_page=paginator.page,
+                                  total_pages=paginator.pages),
         )
     else:
-        raise ValueError("Product has no image")
+        raise ValueError(bot_messages.get("product_no_image"))
 
     pagination_btns = await pages(paginator)
 
@@ -117,9 +121,9 @@ async def carts(level, menu_name, page, user_id, product_id):
                     caption=f"<strong>{banner.description}</strong>",
                 )
             else:
-                raise FileNotFoundError(f"Banner image not found: {image_path}")
+                raise FileNotFoundError(bot_messages.get("banner_image_not_found", path=image_path))
         else:
-            raise ValueError("Banner not found or has no image")
+            raise ValueError(bot_messages.get("banner_not_found_or_no_image"))
 
         kbds = get_user_cart(
             level=level,
@@ -142,13 +146,19 @@ async def carts(level, menu_name, page, user_id, product_id):
             if os.path.exists(image_path):
                 image = InputMediaPhoto(
                     media=FSInputFile(image_path),
-                    caption=f"<strong>{cart.product.name}</strong>\n{cart.product.price}$ x {cart.quantity} = {cart_price}$\
-                            \nGood {paginator.page} из {paginator.pages} in cart.\nTotal price in cart {total_price}",
+                    caption=bot_messages.get("cart_item_details",
+                                          name=cart.product.name,
+                                          price=cart.product.price,
+                                          quantity=cart.quantity,
+                                          cart_price=cart_price,
+                                          current_page=paginator.page,
+                                          total_pages=paginator.pages,
+                                          total_price=total_price),
                 )
             else:
-                raise FileNotFoundError(f"Product image not found: {image_path}")
+                raise FileNotFoundError(bot_messages.get("product_image_not_found", path=image_path))
         else:
-            raise ValueError("Product has no image")
+            raise ValueError(bot_messages.get("product_no_image"))
 
         pagination_btns = await pages(paginator)
 

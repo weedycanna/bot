@@ -1,6 +1,7 @@
 from aiogram import F, Router
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import CallbackQuery
+from app_config import bot_messages
 
 from app import CHANNEL_ID, bot
 from filters.chat_types import ChatTypeFilter
@@ -11,7 +12,6 @@ subscription_router.message.filter(ChatTypeFilter(["private"]))
 
 
 class CheckSubscription:
-    """Check if user is subscribed to the channel."""
 
     @staticmethod
     async def check_member_subscription(user_id: int) -> bool:
@@ -32,6 +32,6 @@ async def check_subscription_callback(callback: CallbackQuery):
             media.media, caption=media.caption, reply_markup=reply_markup
         )
         await callback.message.delete()
-        await callback.answer("✅ You have successfully subscribed to the channel!")
+        await callback.answer(bot_messages.get("subscription_successful"))
     else:
-        await callback.answer("❌ You are not subscribed to the channel. Please subscribe first.")
+        await callback.answer(bot_messages.get("subscription_required_callback"))

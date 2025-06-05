@@ -4,6 +4,7 @@ from typing import Set
 from aiogram import Bot, Router, types
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command
+from app_config import bot_messages
 
 from filters.chat_types import ChatTypeFilter
 from utils.utils import clean_text, get_restricted_words
@@ -43,13 +44,13 @@ async def clear_group(message: types.Message, bot: Bot) -> None:
             )
             if chat_member.status not in ["administrator", "creator"]:
                 await message.answer(
-                    "The command is only available to group administrators."
+                    bot_messages.get("clear_admin_only")
                 )
                 return
 
             bot_member = await bot.get_chat_member(message.chat.id, (await bot.me()).id)
             if bot_member.status not in ["administrator", "creator"]:
-                await message.answer("Bot must be a group admin to delete messages")
+                await message.answer(bot_messages.get("bot_admin_required"))
                 return
 
         deleted_count = 0
@@ -62,7 +63,7 @@ async def clear_group(message: types.Message, bot: Bot) -> None:
                 continue
 
         if deleted_count > 0:
-            notification = await message.answer(f"Deleted {deleted_count} messages!")
+            notification = await message.answer(bot_messages.get("messages_deleted", count=deleted_count))
             await asyncio.sleep(3)
             try:
                 await notification.delete()
@@ -70,7 +71,7 @@ async def clear_group(message: types.Message, bot: Bot) -> None:
                 pass
 
     except ValueError:
-        await message.answer("Invalid command format. Use: /clear <number>")
+        await message.answer(bot_messages.get("clear_command_format"))
 
 
 @user_group_router.edited_message()
@@ -81,7 +82,7 @@ async def cleaner(message: types.Message) -> None:
         last_name = message.from_user.last_name or ""
         full_name = f"{first_name} {last_name}"
 
-        await message.answer(f"{full_name}, keeps order in the chat! 🤬")
+        await message.answer(bot_messages.get("restricted_words_warning", user_name=full_name))
 
         await message.delete()
         await message.chat.ban(message.from_user.id)

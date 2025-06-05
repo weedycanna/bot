@@ -7,6 +7,7 @@ from aiogram.filters import Command, StateFilter, or_f
 from aiogram.fsm.context import FSMContext
 from aiogram.types import FSInputFile
 from django.conf import settings
+from app_config import bot_messages
 
 from app import bot
 from django_project.telegrambot.usersmanage.models import TelegramUser
@@ -30,40 +31,40 @@ admin_router.message.filter(ChatTypeFilter(["private"]), IsAdmin())
 
 
 ADMIN_KB = get_keyboard(
-    "➕ Add good",
-    "🛒 Assortment",
-    "🖼️ Add/Change banner",
-    "📊 Statistics",
-    "📣 Newsletter",
-    placeholder="What do you want to do?",
+    bot_messages.get("admin_add_good"),
+    bot_messages.get("admin_assortment"),
+    bot_messages.get("admin_add_banner"),
+    bot_messages.get("admin_statistics"),
+    bot_messages.get("admin_newsletter"),
+    placeholder=bot_messages.get("admin_kb_placeholder"),
     sizes=(2,),
 )
 
 
 @admin_router.message(Command("admin"))
 async def admin_features(message: types.Message) -> None:
-    await message.answer("What do you want to do?", reply_markup=ADMIN_KB)
+    await message.answer(bot_messages.get("admin_kb_placeholder"), reply_markup=ADMIN_KB)
 
 
-@admin_router.message(F.text == "🛒 Assortment")
+@admin_router.message(F.text == bot_messages.get("admin_assortment"))
 async def assortment(message: types.Message):
     user_id = message.from_user.id
     if user_id not in bot.my_admins_list:
-        await message.answer("❌ You do not have sufficient rights to access this feature.")
+        await message.answer(bot_messages.get("admin_no_access"))
         return
 
     categories = await get_categories()
     btns = {category.name: f"category_{category.id}" for category in categories}
     await message.answer(
-        "Choose the category:", reply_markup=get_callback_btns(btns=btns)
+        bot_messages.get("admin_choose_category"), reply_markup=get_callback_btns(btns=btns)
     )
 
 
-@admin_router.message(F.text == "📊 Statistics")
+@admin_router.message(F.text == bot_messages.get("admin_statistics"))
 async def show_statistics(message: types.Message):
     user_id = message.from_user.id
     if user_id not in bot.my_admins_list:
-        await message.answer("❌ You do not have sufficient rights to access this feature.")
+        await message.answer(bot_messages.get("admin_no_access"))
         return
 
     users = await total_users()
@@ -75,10 +76,11 @@ async def show_statistics(message: types.Message):
     category_stats_text = textwrap.indent("\n".join(category_stats_lines), "        ")
 
     await message.answer(
-        f"📊 Statistics:\n👥 Total users: {users} \n"
-        f"🛒 Total orders: {orders} \n"
-        f"📦 Total products: {products} \n"
-        f"📂 Products by Category:\n {category_stats_text}"
+        bot_messages.get("admin_statistics_text",
+                        users=users,
+                        orders=orders,
+                        products=products,
+                        category_stats_text=category_stats_text)
     )
 
 
@@ -96,24 +98,28 @@ async def starring_at_product(callback: types.CallbackQuery):
                         photo = FSInputFile(image_path)
                         await callback.message.answer_photo(
                             photo=photo,
-                            caption=f"<strong>{product.name}</strong>\n{product.description}\n"
-                            f"Price: {round(product.price, 2)}💵",
+                            caption=bot_messages.get("admin_product_card",
+                                                    name=product.name,
+                                                    description=product.description,
+                                                    price=round(product.price, 2)),
                             reply_markup=get_callback_btns(
                                 btns={
-                                    "Delete": f"delete_{product.id}",
-                                    "Edit": f"edit_{product.id}",
+                                    bot_messages.get("admin_delete_btn"): f"delete_{product.id}",
+                                    bot_messages.get("admin_edit_btn"): f"edit_{product.id}",
                                 },
                                 sizes=(2,),
                             ),
                         )
                 else:
                     await callback.message.answer(
-                        f"<strong>{product.name}</strong>\n{product.description}\n"
-                        f"Price: {round(product.price, 2)}💵",
+                        bot_messages.get("admin_product_card",
+                                        name=product.name,
+                                        description=product.description,
+                                        price=round(product.price, 2)),
                         reply_markup=get_callback_btns(
                             btns={
-                                "Delete": f"delete_{product.id}",
-                                "Edit": f"edit_{product.id}",
+                                bot_messages.get("admin_delete_btn"): f"delete_{product.id}",
+                                bot_messages.get("admin_edit_btn"): f"edit_{product.id}",
                             },
                             sizes=(2,),
                         ),
@@ -122,10 +128,10 @@ async def starring_at_product(callback: types.CallbackQuery):
                 continue
 
         await callback.answer()
-        await callback.message.answer("Ok, list of products ⏫")
+        await callback.message.answer(bot_messages.get("admin_products_list"))
 
     except (FileNotFoundError, AttributeError, OSError, TypeError):
-        await callback.message.answer("Error occurred while processing products")
+        await callback.message.answer(bot_messages.get("admin_products_error"))
         await callback.answer()
 
 
@@ -137,20 +143,20 @@ async def get_delete_product(callback: types.CallbackQuery):
     animation_url: str = os.getenv("DELETE_ANIMATION_URL")
     await callback.message.answer_animation(animation=animation_url)
 
-    await callback.answer("Good deleted successfully!")
-    await callback.message.answer("Good deleted successfully!")
+    await callback.answer(bot_messages.get("admin_product_deleted"))
+    await callback.message.answer(bot_messages.get("admin_product_deleted"))
 
 
-@admin_router.message(StateFilter(None), F.text == "🖼️ Add/Change banner")
+@admin_router.message(StateFilter(None), F.text == bot_messages.get("admin_add_banner"))
 async def add_image_to_banner(message: types.Message, state: FSMContext) -> None:
     user_id = message.from_user.id
     if user_id not in bot.my_admins_list:
-        await message.answer("❌ You do not have sufficient rights to access this feature.")
+        await message.answer(bot_messages.get("admin_no_access"))
         return
 
     pages_names = [page.name for page in await get_info_pages()]
     await message.answer(
-        f"Send a banner photo. \n Choose the page for the banner:  \n {', '.join(pages_names)}"
+        bot_messages.get("admin_banner_instructions", pages=', '.join(pages_names))
     )
     await state.set_state(AddBanner.image)
 
@@ -162,20 +168,20 @@ async def add_banner(message: types.Message, state: FSMContext) -> None:
     pages_names = [page.name for page in await get_info_pages()]
     if for_page not in pages_names:
         await message.answer(
-            "You write wrong page name, please choose the page from the list"
+            bot_messages.get("admin_banner_wrong_page")
         )
         return
     await change_banner_image(
         for_page,
         image_id,
     )
-    await message.answer("Banner added/changed successfully!")
+    await message.answer(bot_messages.get("admin_banner_success"))
     await state.clear()
 
 
 @admin_router.message(AddBanner.image, or_f(F.photo, F.text == "."))
 async def not_correct_add_banner(message: types.Message) -> None:
-    await message.answer("You write wrong data, please load the image of the banner:")
+    await message.answer(bot_messages.get("admin_banner_wrong_data"))
 
 
 @admin_router.callback_query(StateFilter(None), F.data.startswith("edit_"))
@@ -187,21 +193,21 @@ async def edit_product_callback(callback: types.CallbackQuery, state: FSMContext
 
     await callback.answer()
     await callback.message.answer(
-        "Enter the name of the product you want to change:",
+        bot_messages.get("admin_product_edit_name"),
         reply_markup=types.ReplyKeyboardRemove(),
     )
     await state.set_state(AddProduct.name)
 
 
-@admin_router.message(StateFilter(None), F.text == "➕ Add good")
+@admin_router.message(StateFilter(None), F.text == bot_messages.get("admin_add_good"))
 async def get_add_product(message: types.Message, state: FSMContext):
     user_id = message.from_user.id
     if user_id not in bot.my_admins_list:
-        await message.answer("❌ You do not have sufficient rights to access this feature.")
+        await message.answer(bot_messages.get("admin_no_access"))
         return
 
     await message.answer(
-        "Enter the name of the product you want to add:",
+        bot_messages.get("admin_product_add_name"),
         reply_markup=types.ReplyKeyboardRemove(),
     )
     await state.set_state(AddProduct.name)
@@ -215,7 +221,7 @@ async def cancel_handler(message: types.Message, state: FSMContext) -> None:
         AddProduct.product_for_change = None
 
     await state.clear()
-    await message.answer("Canceled", reply_markup=ADMIN_KB)
+    await message.answer(bot_messages.get("admin_canceled"), reply_markup=ADMIN_KB)
 
 
 @admin_router.message(StateFilter("*"), Command("back"))
@@ -223,7 +229,7 @@ async def back_step_handler(message: types.Message, state: FSMContext):
     current_state = await state.get_state()
 
     if current_state == AddProduct.name:
-        await message.answer('Previous step is not available, or write "cancel"')
+        await message.answer(bot_messages.get("admin_no_previous_step"))
         return
 
     previous = None
@@ -231,7 +237,7 @@ async def back_step_handler(message: types.Message, state: FSMContext):
         if step.state == current_state:
             await state.set_state(previous)
             await message.answer(
-                f"Ok, you are on the previous step \n {AddProduct.texts[previous.state]}"
+                bot_messages.get("admin_previous_step", step_text=AddProduct.texts[previous.state])
             )
             return
         previous = step
@@ -244,18 +250,18 @@ async def add_name(message: types.Message, state: FSMContext):
     else:
         if 4 >= len(message.text) >= 100:
             await message.answer(
-                "Product name is too long or too short, please write the name of the product:"
+                bot_messages.get("admin_product_name_error")
             )
             return
 
         await state.update_data(name=message.text)
-    await message.answer("Enter the description of the product:")
+    await message.answer(bot_messages.get("admin_product_description"))
     await state.set_state(AddProduct.description)
 
 
 @admin_router.message(AddProduct.name)
 async def not_correct_add_name(message: types.Message, state: FSMContext):
-    await message.answer("You write wrong data, please write the name of the product:")
+    await message.answer(bot_messages.get("admin_product_name_wrong_data"))
 
 
 @admin_router.message(AddProduct.description, F.text)
@@ -265,7 +271,7 @@ async def add_description(message: types.Message, state: FSMContext):
     else:
         if 4 >= len(message.text) <= 1000:
             await message.answer(
-                "Product description is too long or too short, \n please write the description of the product:"
+                bot_messages.get("admin_product_description_error")
             )
             return
 
@@ -274,7 +280,7 @@ async def add_description(message: types.Message, state: FSMContext):
     categories = await get_categories()
     btns = {category.name: str(category.id) for category in categories}
     await message.answer(
-        "Choose the category:", reply_markup=get_callback_btns(btns=btns)
+        bot_messages.get("admin_choose_category"), reply_markup=get_callback_btns(btns=btns)
     )
     await state.set_state(AddProduct.category)
 
@@ -282,7 +288,7 @@ async def add_description(message: types.Message, state: FSMContext):
 @admin_router.message(AddProduct.description)
 async def not_correct_add_description(message: types.Message, state: FSMContext):
     await message.answer(
-        "You write wrong data, please write the description of the product:"
+        bot_messages.get("admin_product_description_wrong_data")
     )
 
 
@@ -291,17 +297,17 @@ async def category_choice(callback: types.CallbackQuery, state: FSMContext):
     if int(callback.data) in [category.id for category in await get_categories()]:
         await callback.answer()
         await state.update_data(category=callback.data)
-        await callback.message.answer("Enter the price of the product:")
+        await callback.message.answer(bot_messages.get("admin_product_price"))
         await state.set_state(AddProduct.price)
     else:
-        await callback.message.answer("Choose the category from the list")
+        await callback.message.answer(bot_messages.get("admin_category_wrong_choice"))
         await callback.answer()
 
 
 @admin_router.message(AddProduct.category)
 async def not_correct_category_choice(message: types.Message, state: FSMContext):
     await message.answer(
-        "You write wrong data, please choose the category from the list:"
+        bot_messages.get("admin_category_wrong_data")
     )
 
 
@@ -313,17 +319,17 @@ async def add_price(message: types.Message, state: FSMContext):
         try:
             float(message.text)
         except ValueError:
-            await message.answer("Write correct data, digit only")
+            await message.answer(bot_messages.get("admin_price_error"))
             return
 
         await state.update_data(price=message.text)
-    await message.answer("Load the image of the product:")
+    await message.answer(bot_messages.get("admin_product_image"))
     await state.set_state(AddProduct.image)
 
 
 @admin_router.message(AddProduct.price)
 async def not_correct_add_price(message: types.Message, state: FSMContext):
-    await message.answer("You write wrong data, please write the price of the product:")
+    await message.answer(bot_messages.get("admin_product_price_wrong_data"))
 
 
 @admin_router.message(AddProduct.image, or_f(F.photo, F.text == "."))
@@ -351,7 +357,7 @@ async def add_image(message: types.Message, state: FSMContext):
             )
             await state.update_data(image=save_path)
         else:
-            await message.answer("Send a photo or '.' to keep the current image")
+            await message.answer(bot_messages.get("admin_image_keep_current"))
             return
 
         data = await state.get_data()
@@ -366,14 +372,14 @@ async def add_image(message: types.Message, state: FSMContext):
             await add_product(data)
 
         await message.answer(
-            "Product added/updated successfully!", reply_markup=ADMIN_KB
+            bot_messages.get("admin_product_success"), reply_markup=ADMIN_KB
         )
         await state.clear()
         AddProduct.product_for_change = None
 
     except (FileNotFoundError, AttributeError, OSError, TypeError):
         await message.answer(
-            "Error occurred. Try again or type 'cancel'", reply_markup=ADMIN_KB
+            bot_messages.get("admin_product_error"), reply_markup=ADMIN_KB
         )
         await state.clear()
         AddProduct.product_for_change = None
@@ -381,23 +387,23 @@ async def add_image(message: types.Message, state: FSMContext):
 
 @admin_router.message(AddProduct.image)
 async def not_correct_add_image(message: types.Message, state: FSMContext):
-    await message.answer("You write wrong data, please load the image of the product:")
+    await message.answer(bot_messages.get("admin_product_image_wrong_data"))
 
 
-@admin_router.message(F.text == "📣 Newsletter")
+@admin_router.message(F.text == bot_messages.get("admin_newsletter"))
 async def newsletter(message: types.Message, state: FSMContext):
     if message.from_user.id not in bot.my_admins_list:
-        await message.answer("❌ You do not have sufficient rights to access this feature.")
+        await message.answer(bot_messages.get("admin_no_access"))
         return
 
     await state.set_state(Newsletter.waiting_for_content)
-    await message.answer("Enter the content of the newsletter")
+    await message.answer(bot_messages.get("admin_newsletter_content"))
 
 
 @admin_router.message(Newsletter.waiting_for_content)
 async def process_newsletter(message: types.Message, state: FSMContext):
     users = TelegramUser.objects.all()
-    start_time = datetime.datetime.now()
+    start_time = datetime.now()
     error_count = 0
     for user in users:
         try:
@@ -406,11 +412,13 @@ async def process_newsletter(message: types.Message, state: FSMContext):
             error_count += 1
             continue
 
+    time_taken = (datetime.now() - start_time).total_seconds()
     await message.answer(
-        "<b> 🎉 Newsletter sent successfully! \n\n"
-        f"✅ Sent to: {len(users) - error_count}\n"
-        f"❌ Errors occurred while sending: {error_count}\n"
-        f"⏳ Time taken: <code>{(datetime.datetime.now() - start_time).total_seconds():.2} sec.</code></b>"
+        bot_messages.get("admin_newsletter_success",
+                        success_count=len(users) - error_count,
+                        error_count=error_count,
+                        time_taken=f"{time_taken:.2}"),
+        parse_mode="HTML"
     )
 
     await state.clear()

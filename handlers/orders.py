@@ -12,6 +12,7 @@ from aiogram.types import (CallbackQuery, FSInputFile, InlineKeyboardButton,
                            KeyboardButton, LabeledPrice, Message,
                            ReplyKeyboardMarkup, ReplyKeyboardRemove)
 from django.conf import settings
+from app_config import bot_messages
 
 from app import crypto_client
 from callbacks.callbacks import OrderDetailCallBack
@@ -34,7 +35,7 @@ order_router.message.filter(ChatTypeFilter(["private"]))
 
 @order_router.callback_query(MenuCallBack.filter(F.menu_name == "order"))
 async def start_order(callback: CallbackQuery, state: FSMContext):
-    await callback.message.answer("Please enter your name:")
+    await callback.message.answer(bot_messages.get("first_name_request"))
     await state.set_state(OrderState.name)
     await callback.answer()
 
@@ -43,21 +44,21 @@ async def start_order(callback: CallbackQuery, state: FSMContext):
 async def process_name(message: types.Message, state: FSMContext):
     if len(message.text) < 2 or len(message.text) > 50:
         await message.answer(
-            "Name must be between 2 and 50 characters. Please enter your name again:"
+            bot_messages.get("name_length_error")
         )
         return
     await state.update_data(name=message.text)
     await message.answer(
-        "Please enter your phone number:", reply_markup=get_back_button()
+        bot_messages.get("phone_request_order"), reply_markup=get_back_button()
     )
     await state.set_state(OrderState.phone)
 
 
 @order_router.message(OrderState.phone, F.text)
 async def process_phone(message: types.Message, state: FSMContext):
-    if message.text == "⬅️ Back":
+    if message.text == bot_messages.get("back_button"):
         await message.answer(
-            "Please enter your name again:", reply_markup=ReplyKeyboardRemove()
+            bot_messages.get("name_request_again"), reply_markup=ReplyKeyboardRemove()
         )
         await state.set_state(OrderState.name)
         return
@@ -65,13 +66,13 @@ async def process_phone(message: types.Message, state: FSMContext):
     formatted_phone = format_phone_number(message.text)
     if not formatted_phone:
         await message.answer(
-            "Invalid phone number. Please enter a valid phone number (10-15 digits):"
+            bot_messages.get("invalid_phone_format_order")
         )
         return
 
     await state.update_data(phone=formatted_phone)
     await message.answer(
-        "Phone number accepted. Please enter your address:",
+        bot_messages.get("phone_accepted_address_request"),
         reply_markup=get_back_button(),
     )
     await state.set_state(OrderState.address)
@@ -79,16 +80,16 @@ async def process_phone(message: types.Message, state: FSMContext):
 
 @order_router.message(OrderState.address, F.text)
 async def process_address(message: types.Message, state: FSMContext):
-    if message.text == "⬅️ Back":
+    if message.text == bot_messages.get("back_button"):
         await message.answer(
-            "Please enter your phone number again:", reply_markup=get_back_button()
+            bot_messages.get("phone_request_again"), reply_markup=get_back_button()
         )
         await state.set_state(OrderState.phone)
         return
 
     if len(message.text) < 5 or len(message.text) > 100:
         await message.answer(
-            "❌ Address must be between 5 and 100 characters. Please enter your address again:"
+            bot_messages.get("address_length_error")
         )
         return
 
@@ -98,24 +99,19 @@ async def process_address(message: types.Message, state: FSMContext):
     cart_items = await get_cart_items(message.from_user.id)
     total_amount = sum(float(item.product.price) * item.quantity for item in cart_items)
 
-    confirmation_message = dedent(f"""
-        <b>📋 Order Details</b>
-        <i>👤 Customer Information:</i>
-              • Name: <code>{user_data['name']}</code>
-              • Phone: <code>{user_data['phone']}</code>
-              • Address: <code>{user_data['address']}</code>
-        <i>💰 Payment Information:</i>
-              • Total Amount: <b>${total_amount:.2f}</b>
-        <i>⬇️ Please select payment method below</i>
-    """)
+    confirmation_message = bot_messages.get("order_confirmation",
+                                          name=user_data['name'],
+                                          phone=user_data['phone'],
+                                          address=user_data['address'],
+                                          total_amount=total_amount)
 
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text="Select Payment Method 💳", callback_data="select_payment"),
-                InlineKeyboardButton(text="Cancel ❌", callback_data="cancel_order"),
+                InlineKeyboardButton(text=bot_messages.get("select_payment_btn"), callback_data="select_payment"),
+                InlineKeyboardButton(text=bot_messages.get("cancel_order_btn"), callback_data="cancel_order"),
             ],
-            [InlineKeyboardButton(text="User agreement 📜", url=os.getenv("USER_AGREEMENT"))]
+            [InlineKeyboardButton(text=bot_messages.get("user_agreement_btn"), url=os.getenv("USER_AGREEMENT"))]
         ]
     )
 
@@ -129,7 +125,7 @@ async def select_payment_method(callback: CallbackQuery, state: FSMContext):
 
     keyboard = get_select_payment_keyboard()
 
-    await callback.message.edit_text("<b>💳 Select Payment Method:</b>", reply_markup=keyboard, parse_mode="HTML")
+    await callback.message.edit_text(bot_messages.get("select_payment_method"), reply_markup=keyboard, parse_mode="HTML")
 
 
 @order_router.callback_query(F.data.startswith("crypto_"))
@@ -143,24 +139,24 @@ async def process_crypto_payment(callback: CallbackQuery, state: FSMContext):
             rate = await CryptoApiManager.get_crypto_rate(crypto, "USD")
 
             if rate is None:
-                await callback.answer("❌ Error getting exchange rate. Please try again.", show_alert=True)
+                await callback.answer(bot_messages.get("crypto_rate_error"), show_alert=True)
                 return
 
             crypto_amount = await CryptoApiManager.convert_to_crypto(float(amount_usd), "USD", crypto)
 
             if crypto_amount is None:
-                await callback.answer("❌ Error calculating crypto amount. Please try again.", show_alert=True)
+                await callback.answer(bot_messages.get("crypto_calculation_error"), show_alert=True)
                 return
 
             invoice = await crypto_client.create_invoice(
-                asset=crypto, amount=crypto_amount, description=f"Order payment for {callback.from_user.id}"
+                asset=crypto, amount=crypto_amount, description=bot_messages.get("order_payment_description", user_id=callback.from_user.id)
             )
         except Exception as e:
-            await callback.answer("❌ Error creating crypto invoice. Please try again.", show_alert=True)
+            await callback.answer(bot_messages.get("crypto_invoice_error"), show_alert=True)
             return
 
         if not invoice or not hasattr(invoice, "invoice_id") or not hasattr(invoice, "bot_invoice_url"):
-            await callback.answer("❌ Invalid payment response. Please try again.", show_alert=True)
+            await callback.answer(bot_messages.get("invalid_payment_response"), show_alert=True)
             return
 
         expiration_time = datetime.now() + timedelta(minutes=3)
@@ -174,13 +170,13 @@ async def process_crypto_payment(callback: CallbackQuery, state: FSMContext):
                 }
             )
         except Exception as e:
-            await callback.answer("❌ Error saving payment data. Please try again.", show_alert=True)
+            await callback.answer(bot_messages.get("payment_data_save_error"), show_alert=True)
             return
 
         keyboard = InlineKeyboardMarkup(
             inline_keyboard=[
-                [InlineKeyboardButton(text=f"Pay with {crypto} 💳", url=invoice.bot_invoice_url)],
-                [InlineKeyboardButton(text="Cancel ❌", callback_data="cancel_order")],
+                [InlineKeyboardButton(text=bot_messages.get("pay_with_crypto_btn", crypto=crypto), url=invoice.bot_invoice_url)],
+                [InlineKeyboardButton(text=bot_messages.get("cancel_order_btn"), callback_data="cancel_order")],
             ]
         )
 
@@ -189,21 +185,16 @@ async def process_crypto_payment(callback: CallbackQuery, state: FSMContext):
         else:
             crypto_format = f"{crypto_amount:.8f}"
 
-        payment_message = dedent(f"""
-            <b>📋 Payment Details</b>
-            <i>💰 Payment Information:</i>
-                  • Amount USD: <b>${amount_usd:.2f}</b>
-                  • Amount {crypto}: <b>{crypto_format}</b>
-                  • Currency: <b>{crypto}</b>
-                  • Expiration: <code>{expiration_time.strftime('%H:%M:%S')}</code>  
-            <i>⏰ Time Remaining: 3 minutes</i>   
-            <b>ℹ️ Please complete the payment before the timer expires</b>
-        """)
+        payment_message = bot_messages.get("payment_details",
+                                         amount_usd=amount_usd,
+                                         crypto_amount=crypto_format,
+                                         crypto=crypto,
+                                         expiration_time=expiration_time.strftime('%H:%M:%S'))
 
         try:
             await callback.message.edit_text(payment_message, reply_markup=keyboard, parse_mode="HTML")
         except Exception as e:
-            await callback.answer("❌ Error displaying payment details. Please try again.", show_alert=True)
+            await callback.answer(bot_messages.get("payment_details_display_error"), show_alert=True)
             return
 
         asyncio.create_task(
@@ -211,7 +202,7 @@ async def process_crypto_payment(callback: CallbackQuery, state: FSMContext):
         )
 
     except Exception as e:
-        await callback.answer("❌ Payment processing error. Please try again or contact support.", show_alert=True)
+        await callback.answer(bot_messages.get("payment_processing_error"), show_alert=True)
         return
 
 
@@ -224,8 +215,8 @@ async def handle_star_payment(callback: CallbackQuery, state: FSMContext):
         stars_amount = int(float(amount_usd) / star_rate)
 
         kb = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text=f"Pay {stars_amount} Stars ⭐", pay=True)],
-            [InlineKeyboardButton(text="Cancel ❌", callback_data="cancel_order")]
+            [InlineKeyboardButton(text=bot_messages.get("pay_with_stars_btn", stars_amount=stars_amount), pay=True)],
+            [InlineKeyboardButton(text=bot_messages.get("cancel_order_btn"), callback_data="cancel_order")]
         ])
 
         prices = [LabeledPrice(label="XTR", amount=stars_amount)]
@@ -234,8 +225,8 @@ async def handle_star_payment(callback: CallbackQuery, state: FSMContext):
 
         await callback.bot.send_invoice(
             chat_id=callback.from_user.id,
-            title="Order Payment",
-            description=f"Payment for the amount {stars_amount} Stars",
+            title=bot_messages.get("order_payment_title"),
+            description=bot_messages.get("star_payment_description", stars_amount=stars_amount),
             prices=prices,
             provider_token=os.getenv("STAR_PAYMENT_TOKEN"),
             payload=payload,
@@ -246,7 +237,7 @@ async def handle_star_payment(callback: CallbackQuery, state: FSMContext):
         )
 
     except Exception:
-        await callback.answer("Error processing Star payment", show_alert=True)
+        await callback.answer(bot_messages.get("star_payment_error"), show_alert=True)
 
 
 async def check_payment(invoice_id, user_id, amount, crypto, bot, state, user_data):
@@ -274,24 +265,14 @@ async def check_payment(invoice_id, user_id, amount, crypto, bot, state, user_da
 
                     order_status = await get_order_status(order.id)
 
-                    success_message = dedent(f"""
-                        <b>Payment Successful</b>
-
-                        <i>Order Information:</i>
-                        • Order ID: <code>{order.id}</code>
-                        • Status: <b>{order_status}</b>
-
-                        <i>Payment Details:</i>
-                        • Amount: <b>${amount:.2f}</b>
-                        • Currency: <b>{crypto}</b>
-
-                        <i>Delivery Information:</i>
-                        • Name: <code>{user_data.get("name", "")}</code>
-                        • Phone: <code>{user_data.get("phone", "")}</code>
-                        • Address: <code>{user_data.get("address", "")}</code>
-
-                        <i>You can view your order details in the Orders menu</i>
-                    """)
+                    success_message = bot_messages.get("payment_successful",
+                                                    order_id=order.id,
+                                                    order_status=order_status,
+                                                    amount=amount,
+                                                    crypto=crypto,
+                                                    name=user_data.get("name", ""),
+                                                    phone=user_data.get("phone", ""),
+                                                    address=user_data.get("address", ""))
 
                     await bot.send_message(
                         user_id,
@@ -304,8 +285,7 @@ async def check_payment(invoice_id, user_id, amount, crypto, bot, state, user_da
                 except Exception:
                     await bot.send_message(
                         user_id,
-                        "❌ <b>Payment received but order creation failed.</b>\n"
-                        "Please contact support.",
+                        bot_messages.get("payment_received_order_failed"),
                         parse_mode="HTML"
                     )
                     return
@@ -317,9 +297,7 @@ async def check_payment(invoice_id, user_id, amount, crypto, bot, state, user_da
 
     await bot.send_message(
         user_id,
-        "<b>⏰ Payment Time Expired!</b>\n\n"
-        "❌ The payment was not completed within the allowed time.\n"
-        "Please try again if you wish to complete the purchase.",
+        bot_messages.get("payment_time_expired"),
         parse_mode="HTML"
     )
     await state.clear()
@@ -329,14 +307,14 @@ async def check_payment(invoice_id, user_id, amount, crypto, bot, state, user_da
 async def cancel_order(callback: CallbackQuery, state: FSMContext):
     current_state = await state.get_state()
     if current_state is None:
-        await callback.answer("This order has already been processed!", show_alert=True)
+        await callback.answer(bot_messages.get("order_already_processed"), show_alert=True)
         return
 
     await callback.message.edit_reply_markup(reply_markup=None)
     await callback.answer()
 
     await callback.message.answer(
-        "Order canceled ❌", reply_markup=ReplyKeyboardRemove()
+        bot_messages.get("order_canceled"), reply_markup=ReplyKeyboardRemove()
     )
 
     await state.clear()
@@ -347,29 +325,29 @@ async def handle_edit(callback: CallbackQuery, state: FSMContext):
     field = callback.data.split("_")[1]
     if field == "name":
         await callback.message.answer(
-            "Please enter your name again:", reply_markup=ReplyKeyboardRemove()
+            bot_messages.get("name_request_again"), reply_markup=ReplyKeyboardRemove()
         )
         await state.set_state(OrderState.name)
     elif field == "phone":
         keyboard = ReplyKeyboardMarkup(
             keyboard=[
-                [KeyboardButton(text="⬅️ Back")],
+                [KeyboardButton(text=bot_messages.get("back_button"))],
             ],
             resize_keyboard=True,
         )
         await callback.message.answer(
-            "Please enter your phone number again:", reply_markup=keyboard
+            bot_messages.get("phone_request_again"), reply_markup=keyboard
         )
         await state.set_state(OrderState.phone)
     elif field == "address":
         keyboard = ReplyKeyboardMarkup(
             keyboard=[
-                [KeyboardButton(text="⬅️ Back")],
+                [KeyboardButton(text=bot_messages.get("back_button"))],
             ],
             resize_keyboard=True,
         )
         await callback.message.answer(
-            "Please enter your address again:", reply_markup=keyboard
+            bot_messages.get("address_request_again"), reply_markup=keyboard
         )
         await state.set_state(OrderState.address)
 
@@ -393,51 +371,49 @@ async def process_orders_command(update: Union[CallbackQuery, Message]):
 
         banner = await get_banner("orders")
         if not banner:
-            raise ValueError("Banner not found")
+            raise ValueError(bot_messages.get("banner_not_found"))
 
         if not banner.image:
-            raise ValueError("Banner has no image")
+            raise ValueError(bot_messages.get("banner_no_image"))
 
         image_path = os.path.join(settings.MEDIA_ROOT, str(banner.image))
         if not os.path.exists(image_path):
-            raise FileNotFoundError(f"Banner image not found: {image_path}")
+            raise FileNotFoundError(bot_messages.get("banner_image_not_found", path=image_path))
 
         if not orders:
-            pass
+            text = bot_messages.get("no_orders")
         else:
             text = ""
             for order in orders:
-                text += (
-                    f"🔸 Order {str(order.id)[:8]}\n"
-                    f"👤 Name: {order.name}\n"
-                    f"📦 Status: {order.status}\n"
-                    f"📍 Address: {order.address}\n"
-                    f"📱 Phone: {order.phone}\n"
-                    f"-------------------\n"
-                )
+                text += bot_messages.get("order_item",
+                                     order_id=str(order.id)[:8],
+                                     name=order.name,
+                                     status=order.status,
+                                     address=order.address,
+                                     phone=order.phone)
 
-            media = InputMediaPhoto(
-                media=FSInputFile(image_path),
+        media = InputMediaPhoto(
+            media=FSInputFile(image_path),
+            caption=f"<strong>{banner.description}</strong>\n\n{text}",
+            parse_mode="HTML",
+        )
+
+        keyboard = get_order_details_keyboard(orders)
+
+        if is_callback:
+            await target.edit_media(media=media, reply_markup=keyboard)
+            await update.answer()
+        else:
+            await target.answer_photo(
+                photo=FSInputFile(image_path),
                 caption=f"<strong>{banner.description}</strong>\n\n{text}",
+                reply_markup=keyboard,
                 parse_mode="HTML",
             )
 
-            keyboard = get_order_details_keyboard(orders)
-
-            if is_callback:
-                await target.edit_media(media=media, reply_markup=keyboard)
-                await update.answer()
-            else:
-                await target.answer_photo(
-                    photo=FSInputFile(image_path),
-                    caption=f"<strong>{banner.description}</strong>\n\n{text}",
-                    reply_markup=keyboard,
-                    parse_mode="HTML",
-                )
-
     except (FileNotFoundError, AttributeError, OSError, TypeError):
             await update.answer(
-                "There was an error retrieving order details", show_alert=True
+                bot_messages.get("order_details_error"), show_alert=True
             )
 
 
@@ -448,42 +424,38 @@ async def process_order_detail(
     try:
         order = await get_order_by_id(callback_data.order_id)
         if not order:
-            await callback.answer("Order not found", show_alert=True)
+            await callback.answer(bot_messages.get("order_not_found"), show_alert=True)
             return
 
         items = await get_order_items(order.id)
 
         if not items:
-            await callback.answer("The order has no products", show_alert=True)
+            await callback.answer(bot_messages.get("order_no_products"), show_alert=True)
             return
 
         total_sum = sum(float(item.price) * item.quantity for item in items)
 
-        text = (
-            f"📋 Order Detail {str(order.id)[:8]}\n"
-            f"📅 Creation date: {order.created_at.strftime('%d.%m.%Y %H:%M')}\n"
-            f"👤 First name: {order.name}\n"
-            f"📦 Status: {order.status}\n"
-            f"📍 Address: {order.address}\n"
-            f"📱 Phone: {order.phone}\n\n"
-            f"📝 Items in order: \n\n"
-        )
+        text = bot_messages.get("order_detail_header",
+                              order_id=str(order.id)[:8],
+                              created_at=order.created_at.strftime('%d.%m.%Y %H:%M'),
+                              name=order.name,
+                              status=order.status,
+                              address=order.address,
+                              phone=order.phone)
 
         for item in items:
-            text += (
-                f" {item.product.name}\n"
-                f" Quantity: {item.quantity} \n"
-                f" Price: {item.price:.2f} 💵\n"
-                f"-------------------\n"
-            )
+            text += bot_messages.get("order_detail_item",
+                                  name=item.product.name,
+                                  quantity=item.quantity,
+                                  price=item.price)
 
-        text += f"\n💰 Total price: {total_sum:.2f}"
+        text += bot_messages.get("order_detail_total", total_sum=total_sum)
 
         keyboard = InlineKeyboardMarkup(
             inline_keyboard=[
                 [
                     InlineKeyboardButton(
-                        text="◀️ Back to orders",
+                        text=bot_messages.get("back_to_orders_btn"),
                         callback_data=MenuCallBack(menu_name="orders", level=1).pack(),
                     )
                 ]
@@ -509,5 +481,5 @@ async def process_order_detail(
 
     except (FileNotFoundError, AttributeError, OSError, TypeError):
         await callback.answer(
-            "There was an error retrieving order details", show_alert=True
+            bot_messages.get("order_details_error"), show_alert=True
         )
