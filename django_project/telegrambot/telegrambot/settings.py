@@ -10,7 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
-import os
+from app_config import db_config
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -90,11 +90,11 @@ WSGI_APPLICATION: str = "django_project.telegrambot.telegrambot.wsgi.application
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": os.getenv("POSTGRES_DB", "postgres"),
-        "USER": os.getenv("POSTGRES_USER", "postgres"),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD", "postgres"),
-        "HOST": os.getenv("POSTGRES_HOST", "localhost"),
-        "PORT": os.getenv("POSTGRES_PORT", "5432"),
+        "NAME": db_config.POSTGRES_DB,
+        "USER": db_config.POSTGRES_USER,
+        "PASSWORD": db_config.POSTGRES_PASSWORD,
+        "HOST": db_config.POSTGRES_HOST,
+        "PORT": db_config.POSTGRES_PORT,
         "CHARSET": "utf8",
         "USE_UNICODE": True,
     }

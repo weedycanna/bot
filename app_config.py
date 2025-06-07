@@ -1,9 +1,61 @@
 import json
 import logging
 import os
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import Field
 
 logger = logging.getLogger(__name__)
+
+
+class EnvConfig(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file='.env',
+        env_file_encoding='utf-8',
+        extra='ignore'
+    )
+
+    TOKEN: str
+    CHANNEL_ID: str
+    CHANNEL_LINK: str
+
+    CRYPTO_TOKEN: str
+    STAR_PAYMENT_TOKEN: str
+
+    DELETE_ANIMATION_URL: str = "https://media.giphy.com/media/h3oEjI6SIIHBdRxXI40/giphy.gif"
+
+    ADMIN_LIST: str = Field(default="", alias="ADMIN_LIST")
+
+    @property
+    def ADMIN_USER_LIST(self) -> List[int]:
+        if not self.ADMIN_LIST:
+            return []
+        try:
+            return [int(admin_id) for admin_id in self.ADMIN_LIST.split(",") if admin_id.strip()]
+        except ValueError:
+            logger.error("ADMIN_USER_IDS in .env is not a valid list of integers.")
+            return []
+
+
+env_config = EnvConfig()
+
+
+class DatabaseConfig(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+
+    POSTGRES_DB: str = "postgres"
+    POSTGRES_USER: str = "postgres"
+    POSTGRES_PASSWORD: str = "postgres"
+    POSTGRES_HOST: str = "localhost"
+    POSTGRES_PORT: str = "5432"
+
+    DJANGO_SUPERUSER_USERNAME: str = "test"
+    DJANGO_SUPERUSER_EMAIL: str = "test@gmail.com"
+    DJANGO_SUPERUSER_PASSWORD: str = "test123!"
+
+
+db_config = DatabaseConfig()
+
 
 class BotMessages:
     def __init__(self, messages_file="data/bot_messages.json"):

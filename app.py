@@ -10,20 +10,22 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from dotenv import load_dotenv
 
+from app_config import env_config
+
 load_dotenv()
 
 
 bot = Bot(
-    token=os.getenv("TOKEN"), default=DefaultBotProperties(parse_mode=ParseMode.HTML)
+    token=env_config.TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML)
 )
 
 
-CRYPTO_TOKEN = os.getenv("CRYPTO_TOKEN")
+CRYPTO_TOKEN = env_config.CRYPTO_TOKEN
 crypto_client = AioCryptoPay(CRYPTO_TOKEN, network=Networks.TEST_NET)
 
-bot.my_admins_list: list[int, ] = []
-CHANNEL_ID: str = os.getenv("CHANNEL_ID")
-CHANNEL_LINK: str = os.getenv("CHANNEL_LINK")
+bot.my_admins_list: list[int] = env_config.ADMIN_USER_LIST
+CHANNEL_ID: str = env_config.CHANNEL_ID
+CHANNEL_LINK: str = env_config.CHANNEL_LINK
 
 
 dp = Dispatcher()
