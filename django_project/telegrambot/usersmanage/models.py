@@ -13,6 +13,11 @@ ORDER_STATUS = (
     ("cancelled", "cancelled"),
 )
 
+LANGUAGE = (
+    ("en", "English"),
+    ("ru", "Russian"),
+)
+
 
 class TimeBasedModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
@@ -76,11 +81,10 @@ class AdminUser(AbstractUser):
 class TelegramUser(TimeBasedModel):
     id = models.AutoField(primary_key=True)
     user_id = models.BigIntegerField(unique=True)
-    first_name = models.CharField(
-        _("first name"), max_length=30
-    )
-    phone_number = PhoneNumberField(
-        _("phone number"), unique=True
+    first_name = models.CharField(_("first name"), max_length=30)
+    phone_number = PhoneNumberField(_("phone number"), unique=True)
+    language = models.CharField(
+        _("language"), max_length=10, choices=LANGUAGE, default="en"
     )
 
     class Meta:
@@ -162,7 +166,7 @@ class CaptchaRecord(TimeBasedModel):
 
     class Meta:
         unique_together = ("user",)
-        verbose_name_plural: str = "Captchas"
+        verbose_name_plural: str = "Captcha"
         verbose_name: str = "Captcha"
 
     def __str__(self):

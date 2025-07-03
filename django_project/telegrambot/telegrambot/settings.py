@@ -10,11 +10,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
-from app_config import db_config
 from pathlib import Path
 from typing import Any, Dict, List
 
 from django.utils.translation import gettext_lazy as _
+
+from app_config import db_config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent

@@ -1,8 +1,17 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import (AdminUser, Banner, CaptchaRecord, Cart, Category, Order,
-                     OrderItem, Product, TelegramUser)
+from .models import (
+    AdminUser,
+    Banner,
+    CaptchaRecord,
+    Cart,
+    Category,
+    Order,
+    OrderItem,
+    Product,
+    TelegramUser,
+)
 
 
 @admin.register(AdminUser)
@@ -76,10 +85,11 @@ class TelegramUserAdmin(admin.ModelAdmin):
         "first_name",
         "phone_number",
         "user_id",
+        "language",
         "created_at",
         "updated_at",
     )
-    list_display_links = ("first_name", "phone_number", "user_id")
+    list_display_links = ("first_name", "phone_number", "user_id", "language")
     search_fields = ("first_name", "phone_number", "user_id")
     list_filter = ("created_at", "updated_at")
     ordering = ("first_name",)
