@@ -6,157 +6,116 @@ from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
-from app_config import bot_messages
-from handlers.captcha import EMOJI_LIST, process_captcha_callback
+from fluentogram import TranslatorRunner
 
-from django_project.telegrambot.usersmanage.models import Banner
 from filters.chat_types import ChatTypeFilter
-from handlers.admin_private import category_choice
 from handlers.captcha import CaptchaManager
 from handlers.menu_processing import get_menu_content
-from keybords.inline import MenuCallBack, get_user_catalog_btns
+from keybords.inline import MenuCallBack
 from queries.banner_queries import get_banner
 from queries.cart_queries import add_to_cart
-from queries.category_queries import get_categories
 
 user_private_router = Router()
 user_private_router.message.filter(ChatTypeFilter(["private"]))
-
-
-@user_private_router.callback_query()
-async def process_callback(callback: types.CallbackQuery, state: FSMContext):
-    user_id = callback.from_user.id
-
-    if callback.data in EMOJI_LIST:
-        await process_captcha_callback(callback, state)
-        return
-
-    if await CaptchaManager.has_passed_recently(user_id):
-        try:
-            callback_data = callback.data.split(":")
-            if len(callback_data) == 1:
-                await category_choice(callback, state)
-            else:
-                callback_data = MenuCallBack.unpack(callback.data)
-                await user_menu(callback, callback_data)
-        except ValueError:
-            await callback.answer(bot_messages.get("unrecognized_action"), show_alert=True)
-    else:
-        await callback.answer(bot_messages.get("complete_captcha_first"))
-        await CaptchaManager.send_new_captcha(callback.message, user_id)
-
-
-@user_private_router.callback_query(MenuCallBack.filter())
-async def user_menu(callback: types.CallbackQuery, callback_data: MenuCallBack):
-    if callback_data.menu_name == "add_to_cart":
-        cart_item = await add_to_cart(
-            user_id=callback.from_user.id,
-            product_id=callback_data.product_id
-        )
-
-        if cart_item:
-            await callback.answer(bot_messages.get("product_added_to_cart"))
-        else:
-            await callback.answer(bot_messages.get("error_adding_to_cart"))
-        return
-
-    media, reply_markup = await get_menu_content(
-        level=callback_data.level,
-        menu_name=callback_data.menu_name,
-        category=callback_data.category,
-        page=callback_data.page,
-        product_id=callback_data.product_id,
-        user_id=callback.from_user.id,
-    )
-
-    await callback.message.edit_media(media=media, reply_markup=reply_markup)
-    await callback.answer()
 
 
 @user_private_router.message(
     Command(commands=["menu", "cart", "about", "payment", "shipping"])
 )
 @user_private_router.callback_query(MenuCallBack.filter())
-async def process_menu_command(update: Union[CallbackQuery, Message]):
+async def process_menu_command(
+    update: Union[CallbackQuery, Message], state: FSMContext, i18n: TranslatorRunner
+) -> None:
     try:
+        user_id = update.from_user.id
+        if not await CaptchaManager.has_passed_recently(user_id):
+            target_message = (
+                update.message if isinstance(update, CallbackQuery) else update
+            )
+            if isinstance(update, CallbackQuery):
+                await update.answer(i18n.complete_captcha_first(), show_alert=True)
+            await CaptchaManager.send_new_captcha(target_message, user_id, i18n)
+            return
+
+        if isinstance(update, CallbackQuery):
+            if "add_to_cart" in update.data:
+                callback_data = MenuCallBack.unpack(update.data)
+                cart_item = await add_to_cart(
+                    user_id=user_id, product_id=callback_data.product_id
+                )
+                await update.answer(
+                    i18n.product_added_to_cart()
+                    if cart_item
+                    else i18n.error_adding_to_cart()
+                )
+                return
+
         if isinstance(update, CallbackQuery):
             callback_data = MenuCallBack.unpack(update.data)
-            menu_name = callback_data.menu_name
-            level = callback_data.level
-            category = callback_data.category
-            page = callback_data.page
-            product_id = callback_data.product_id
-            user_id = update.from_user.id
+            menu_name, level, category, page, product_id = (
+                callback_data.menu_name,
+                callback_data.level,
+                callback_data.category,
+                callback_data.page,
+                callback_data.product_id,
+            )
             target = update.message
             is_callback = True
         else:
             menu_name = update.text[1:]
-            level = 0 if menu_name != "menu" else 1
-            category = None
-            page = None
-            product_id = None
-            user_id = update.from_user.id
+            level, category, page, product_id = 0, None, 1, None
             target = update
             is_callback = False
 
-        if not is_callback and menu_name == "menu":
-            try:
-                categories = await get_categories()
-                if not categories:
-                    await target.answer(bot_messages.get("categories_not_found"))
-                    return
-
-                banner = await get_banner(menu_name)
-
-                if banner and banner.image:
-                    await target.answer_photo(
-                        photo=banner.image,
-                        caption=bot_messages.get("menu_banner_with_image", description=banner.description),
-                        reply_markup=get_user_catalog_btns(
-                            level=1, categories=categories
-                        ),
-                        parse_mode="HTML",
-                    )
-                else:
-                    await target.answer(
-                        text=bot_messages.get("select_category"),
-                        reply_markup=get_user_catalog_btns(
-                            level=1, categories=categories
-                        ),
-                        parse_mode="HTML",
-                    )
-                return
-            except Banner.DoesNotExist:
-                await target.answer(bot_messages.get("error_loading_menu"))
-                return
-
-        image, keyboard = await get_menu_content(
+        content, keyboard = await get_menu_content(
             level=level,
             menu_name=menu_name,
+            i18n=i18n,
             category=category,
             page=page,
             product_id=product_id,
             user_id=user_id,
         )
 
-        if is_callback:
-            await target.edit_media(media=image, reply_markup=keyboard)
-            await update.answer()
-        else:
-            await target.answer_photo(
-                photo=image.media,
-                caption=image.caption,
-                reply_markup=keyboard,
-                parse_mode="HTML",
-            )
+        banner = await get_banner(menu_name) if level == 0 else None
+        if banner and isinstance(content, types.InputMediaPhoto):
+            content.caption = banner.description
 
-    except (FileNotFoundError, AttributeError, OSError, TypeError):
-        error_message = bot_messages.get("error_opening_menu", menu_name=menu_name)
-        await update.answer(error_message, show_alert=True)
+        if is_callback:
+            try:
+                if isinstance(content, types.InputMediaPhoto):
+                    await target.edit_media(media=content, reply_markup=keyboard)
+                else:
+                    await target.edit_text(
+                        text=content, reply_markup=keyboard, parse_mode="HTML"
+                    )
+            except TelegramBadRequest as e:
+                if "message is not modified" not in str(e):
+                    print(f"ERROR in process_menu_command: {e}")
+            finally:
+                await update.answer()
+        else:
+            if isinstance(content, types.InputMediaPhoto):
+                await target.answer_photo(
+                    photo=content.media,
+                    caption=content.caption,
+                    reply_markup=keyboard,
+                    parse_mode="HTML",
+                )
+            else:
+                await target.answer(
+                    text=content, reply_markup=keyboard, parse_mode="HTML"
+                )
+
+    except Exception:
+        if isinstance(update, CallbackQuery):
+            await update.answer(i18n.unrecognized_action(), show_alert=True)
 
 
 @user_private_router.message(Command("clear"))
-async def clear_private_user(message: types.Message, bot: Bot) -> None:
+async def clear_private_user(
+    message: types.Message, bot: Bot, i18n: TranslatorRunner
+) -> None:
     try:
         if message.chat.type != "private":
             return
@@ -174,7 +133,9 @@ async def clear_private_user(message: types.Message, bot: Bot) -> None:
                 continue
 
         if deleted_count > 0:
-            notification = await message.answer(bot_messages.get("messages_deleted", count=deleted_count))
+            notification = await message.answer(
+                i18n.messages_deleted(count=deleted_count)
+            )
             await asyncio.sleep(3)
             try:
                 await notification.delete()
@@ -182,4 +143,4 @@ async def clear_private_user(message: types.Message, bot: Bot) -> None:
                 pass
 
     except ValueError:
-        await message.answer(bot_messages.get("invalid_clear_format"))
+        await message.answer(i18n.invalid_clear_format())

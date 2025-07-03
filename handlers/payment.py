@@ -1,3 +1,4 @@
+import os
 from http import HTTPStatus
 from typing import Union
 
@@ -5,12 +6,12 @@ import aiohttp
 
 
 class CryptoApiManager:
-
-    RATE_API_URL: str = "https://min-api.cryptocompare.com/data/price"
+    RATE_API_URL: str = os.getenv("RATE_API_URL")
 
     @classmethod
-    async def get_crypto_rate(cls, crypto: str, fiat: str = "USD") -> Union[float, None]:
-
+    async def get_crypto_rate(
+        cls, crypto: str, fiat: str = "USD"
+    ) -> Union[float, None]:
         url: str = f"{cls.RATE_API_URL}?fsym={crypto}&tsyms={fiat}"
 
         try:
@@ -25,16 +26,12 @@ class CryptoApiManager:
         except (ConnectionError, aiohttp.ClientError):
             return None
 
-
     @classmethod
-    async def convert_to_crypto(cls, amount: float, fiat: str, crypto: str) -> Union[float, None]:
-
+    async def convert_to_crypto(
+        cls, amount: float, fiat: str, crypto: str
+    ) -> Union[float, None]:
         rate = await cls.get_crypto_rate(crypto, fiat)
         if rate is None:
             return None
 
         return amount / rate
-
-
-
-

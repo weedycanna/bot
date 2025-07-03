@@ -4,7 +4,7 @@ from typing import Set
 from aiogram import Bot, Router, types
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command
-from app_config import bot_messages
+from fluentogram import TranslatorRunner
 
 from filters.chat_types import ChatTypeFilter
 from utils.utils import clean_text, get_restricted_words
@@ -31,58 +31,57 @@ async def get_admins(message: types.Message, bot: Bot) -> None:
 
 
 @user_group_router.message(Command("clear"))
-async def clear_group(message: types.Message, bot: Bot) -> None:
+async def clear_group(message: types.Message, bot: Bot, i18n: TranslatorRunner) -> None:
+    if message.chat.type == "private":
+        return
     try:
-        command, *args = message.text.split()
-        num_messages = int(args[0]) if args and args[0].isdigit() else 10
+        chat_member = await bot.get_chat_member(message.chat.id, message.from_user.id)
+        if chat_member.status not in ["administrator", "creator"]:
+            await message.answer(i18n.clear_admin_only())
+            return
 
-        is_private = message.chat.type == "private"
+        bot_member = await bot.get_chat_member(message.chat.id, (await bot.me()).id)
+        if not bot_member.can_delete_messages:
+            await message.answer(i18n.bot_admin_required())
+            return
 
-        if not is_private:
-            chat_member = await bot.get_chat_member(
-                message.chat.id, message.from_user.id
+        try:
+            num_to_delete = (
+                int(message.text.split()[1]) if len(message.text.split()) > 1 else 10
             )
-            if chat_member.status not in ["administrator", "creator"]:
-                await message.answer(
-                    bot_messages.get("clear_admin_only")
-                )
-                return
+        except (ValueError, IndexError):
+            await message.answer(i18n.invalid_clear_format())
+            return
 
-            bot_member = await bot.get_chat_member(message.chat.id, (await bot.me()).id)
-            if bot_member.status not in ["administrator", "creator"]:
-                await message.answer(bot_messages.get("bot_admin_required"))
-                return
+        if num_to_delete < 1 or num_to_delete > 100:
+            await message.answer("Please specify a number between 1 and 100.")
+            return
 
-        deleted_count = 0
-        for i in range(num_messages):
-            try:
-                message_id = message.message_id - i
-                await bot.delete_message(message.chat.id, message_id)
-                deleted_count += 1
-            except TelegramBadRequest:
-                continue
+        message_ids_to_delete = [
+            message.message_id - i for i in range(num_to_delete + 1)
+        ]
 
-        if deleted_count > 0:
-            notification = await message.answer(bot_messages.get("messages_deleted", count=deleted_count))
-            await asyncio.sleep(3)
-            try:
-                await notification.delete()
-            except TelegramBadRequest:
-                pass
+        await bot.delete_messages(
+            chat_id=message.chat.id, message_ids=message_ids_to_delete
+        )
 
-    except ValueError:
-        await message.answer(bot_messages.get("clear_command_format"))
+        notification = await message.answer(i18n.messages_deleted(count=num_to_delete))
+        await asyncio.sleep(3)
+        await notification.delete()
+
+    except TelegramBadRequest:
+        await message.answer(i18n.clear_error())
 
 
 @user_group_router.edited_message()
 @user_group_router.message()
-async def cleaner(message: types.Message) -> None:
+async def cleaner(message: types.Message, i18n: TranslatorRunner) -> None:
     if restricted_words.intersection(clean_text(message.text.lower()).split()):
         first_name = message.from_user.first_name or ""
         last_name = message.from_user.last_name or ""
         full_name = f"{first_name} {last_name}"
 
-        await message.answer(bot_messages.get("restricted_words_warning", user_name=full_name))
+        await message.answer(i18n.restricted_words_warning(user_name=full_name))
 
         await message.delete()
         await message.chat.ban(message.from_user.id)
