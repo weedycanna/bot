@@ -2,8 +2,7 @@ from string import punctuation
 from typing import Set
 
 from aiogram.utils.formatting import PhoneNumber
-from phonenumbers import (PhoneNumberFormat, format_number, is_valid_number,
-                          parse)
+from phonenumbers import PhoneNumberFormat, format_number, is_valid_number, parse
 
 
 def clean_text(text: str) -> str:
@@ -21,7 +20,7 @@ def get_restricted_words(file_path: str = "files/restricted_words.txt") -> Set[s
         return set()
 
 
-def format_phone_number(phone: str) -> str:
+def format_phone_number(phone: str) -> str | None:
     try:
         phone_number = parse(phone, "UA")
         if not is_valid_number(phone_number):
