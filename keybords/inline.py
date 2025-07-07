@@ -3,8 +3,10 @@ from typing import Dict, List, Tuple
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from fluentogram import TranslatorRunner
+from parler.utils.context import switch_language
 
 from callbacks.callbacks import LanguageCallBack, MenuCallBack, OrderDetailCallBack
+from django_project.telegrambot.usersmanage.models import Category
 
 
 def get_user_main_btns(*, level: int, i18n: TranslatorRunner, sizes: Tuple[int] = (2,)):
@@ -157,7 +159,8 @@ def get_user_catalog_btns(
     *,
     i18n: TranslatorRunner,
     level: int,
-    categories: List[str],
+    user_language: str,
+    categories: List[Category],
     sizes: Tuple[int] = (2,),
 ):
     keyboard = InlineKeyboardBuilder()
@@ -174,16 +177,16 @@ def get_user_catalog_btns(
             callback_data=MenuCallBack(level=3, menu_name="cart").pack(),
         )
     )
-
     for c in categories:
-        keyboard.add(
-            InlineKeyboardButton(
-                text=c.name,
-                callback_data=MenuCallBack(
-                    level=level + 1, menu_name=c.name, category=c.id
-                ).pack(),
+        with switch_language(c, user_language):
+            keyboard.add(
+                InlineKeyboardButton(
+                    text=c.name,
+                    callback_data=MenuCallBack(
+                        level=level + 1, menu_name=c.name, category=c.id
+                    ).pack(),
+                )
             )
-        )
 
     return keyboard.adjust(*sizes).as_markup()
 
@@ -194,6 +197,7 @@ def get_products_btns(
     level: int,
     category: int,
     page: int,
+    user_language: str,
     pagination_btns: dict,
     product_id: int,
     sizes: Tuple[int] = (2, 1),
