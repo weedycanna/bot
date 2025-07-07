@@ -23,13 +23,11 @@ async def change_language(
     callback_data: LanguageCallBack,
     translator_hub: TranslatorHub,
 ):
-    user_id = callback.from_user.id
     new_language = callback_data.language
 
-    await set_user_language(user_id, new_language)
+    await set_user_language(callback.from_user.id, new_language)
 
     new_i18n = translator_hub.get_translator_by_locale(new_language)
 
     await callback.message.delete()
-
     await start_cmd(callback.message, new_i18n)

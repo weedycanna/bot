@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Optional
 
 from asgiref.sync import sync_to_async
 
@@ -6,7 +6,7 @@ from django_project.telegrambot.usersmanage.models import Category, Product
 
 
 @sync_to_async
-def add_product(data: Dict) -> None:
+def add_product(data: dict) -> None:
     Product.objects.create(
         name=data["name"],
         description=data["description"],
@@ -17,7 +17,7 @@ def add_product(data: Dict) -> None:
 
 
 @sync_to_async
-def get_products(category_id: Optional[int] = None) -> List[Product]:
+def get_products(category_id: Optional[int] = None) -> list[Product]:
     try:
         if category_id is not None:
             products = Product.objects.filter(category_id=int(category_id))
@@ -34,7 +34,7 @@ def get_product(product_id: int) -> Optional[Product]:
 
 
 @sync_to_async
-def update_product(product_id: int, data: Dict) -> None:
+def update_product(product_id: int, data: dict) -> None:
     Product.objects.filter(id=product_id).update(
         name=data["name"],
         description=data["description"],

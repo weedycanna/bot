@@ -1,6 +1,6 @@
 import random
 from datetime import timedelta
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from aiogram import Router, types
 from aiogram.filters import CommandStart
@@ -28,7 +28,7 @@ from states.registration_state import RegistrationStates
 captcha_router = Router()
 captcha_router.message.filter(ChatTypeFilter(["private"]))
 
-CAPTCHA_OPTIONS: List[Tuple[str, str]] = [
+CAPTCHA_OPTIONS: list[tuple[str, str]] = [
     ("apple", "🍎"),
     ("car", "🚗"),
     ("candy", "🍬"),
@@ -37,11 +37,11 @@ CAPTCHA_OPTIONS: List[Tuple[str, str]] = [
     ("watch", "⌚"),
 ]
 
-WORDS_TO_EMOJI: Dict[str, str] = {word: emoji for word, emoji in CAPTCHA_OPTIONS}
-EMOJI_LIST: List[str] = [emoji for _, emoji in CAPTCHA_OPTIONS]
-WORDS_LIST: List[str] = [word for word, _ in CAPTCHA_OPTIONS]
+WORDS_TO_EMOJI: dict[str, str] = {word: emoji for word, emoji in CAPTCHA_OPTIONS}
+EMOJI_LIST: list[str] = [emoji for _, emoji in CAPTCHA_OPTIONS]
+WORDS_LIST: list[str] = [word for word, _ in CAPTCHA_OPTIONS]
 
-user_captcha_data: Dict[int, Dict[str, Any]] = {}
+user_captcha_data: dict[int, dict[str, Any]] = {}
 
 
 class CaptchaManager:
@@ -62,7 +62,7 @@ class CaptchaManager:
             return False
 
     @staticmethod
-    def generate_captcha() -> Tuple[str, str, InlineKeyboardMarkup]:
+    def generate_captcha() -> tuple[str, str, InlineKeyboardMarkup]:
         selected_word = random.choice(WORDS_LIST)
         correct_emoji = WORDS_TO_EMOJI[selected_word]
 

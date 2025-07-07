@@ -1,5 +1,3 @@
-from typing import List
-
 from asgiref.sync import sync_to_async
 from django.db import transaction
 
@@ -12,7 +10,7 @@ from django_project.telegrambot.usersmanage.models import (
 
 
 @sync_to_async
-def get_user_orders(user_id: int) -> List[Order]:
+def get_user_orders(user_id: int) -> list[Order]:
     user = TelegramUser.objects.get(user_id=user_id)
     return list(Order.objects.filter(user=user).order_by("-created_at"))
 
@@ -38,7 +36,7 @@ def add_order_with_items(
     phone: str,
     address: str,
     status: str,
-    cart_items: List[Cart],
+    cart_items: list[Cart],
 ) -> Order:
     user = TelegramUser.objects.get(user_id=user_id)
     try:
@@ -66,7 +64,7 @@ def get_order_by_id(order_id: str) -> Order:
 
 
 @sync_to_async
-def get_order_items(order_id: str) -> List[OrderItem]:
+def get_order_items(order_id: str) -> list[OrderItem]:
     items = list(
         OrderItem.objects.filter(order_id=order_id).select_related("product").all()
     )

@@ -1,5 +1,4 @@
 import asyncio
-from typing import Set
 
 from aiogram import Bot, Router, types
 from aiogram.exceptions import TelegramBadRequest
@@ -13,7 +12,7 @@ user_group_router = Router()
 user_group_router.message.filter(ChatTypeFilter(["group", "supergroup"]))
 user_group_router.edited_message.filter(ChatTypeFilter(["group", "supergroup"]))
 
-restricted_words: Set[str] = get_restricted_words()
+restricted_words: set[str] = get_restricted_words()
 
 
 @user_group_router.message(Command("admin"))
