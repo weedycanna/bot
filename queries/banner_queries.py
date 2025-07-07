@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Optional
 
 from asgiref.sync import sync_to_async
 
@@ -6,7 +6,7 @@ from django_project.telegrambot.usersmanage.models import Banner
 
 
 @sync_to_async
-def add_banner_description(data: Dict) -> None:
+def add_banner_description(data: dict) -> None:
     if not Banner.objects.exists():
         banners = [
             Banner(name=name, description=description)
@@ -16,15 +16,18 @@ def add_banner_description(data: Dict) -> None:
 
 
 @sync_to_async
-def change_banner_image(name: str, image: str) -> None:
-    Banner.objects.filter(name=name).update(image=image)
+def change_banner_image(name: str, image: str) -> Banner:
+    return Banner.objects.filter(name=name).update(image=image)
 
 
 @sync_to_async
-def get_banner(page: str) -> Banner:
-    return Banner.objects.filter(name=page).first()
+def get_banner(page: str, user_language: str = "en") -> Optional[Banner]:
+    try:
+        return Banner.objects.language(user_language).filter(name=page).first()
+    except Banner.DoesNotExist:
+        return Banner.objects.filter(name=page).first()
 
 
 @sync_to_async
-def get_info_pages() -> List[Banner]:
+def get_info_pages() -> list[Banner]:
     return list(Banner.objects.all())
