@@ -40,7 +40,7 @@ from queries.order_queries import (
 )
 from states.order_state import OrderState
 from utils.get_banner_image import get_banner_image
-from utils.utils import format_phone_number
+from utils.utils import convert_currency, format_phone_number, format_price
 
 order_router = Router()
 order_router.message.filter(ChatTypeFilter(["private"]))
@@ -95,7 +95,10 @@ async def process_phone(
 
 @order_router.message(OrderState.address, F.text)
 async def process_address(
-    message: types.Message, state: FSMContext, i18n: TranslatorRunner
+    message: types.Message,
+    state: FSMContext,
+    i18n: TranslatorRunner,
+    user_language: str,
 ):
     if message.text == i18n.back_button():
         await message.answer(
@@ -112,13 +115,17 @@ async def process_address(
     user_data = await state.get_data()
 
     cart_items = await get_cart_items(message.from_user.id)
-    total_amount = sum(float(item.product.price) * item.quantity for item in cart_items)
+    total_amount_usd = sum(
+        float(item.product.price) * item.quantity for item in cart_items
+    )
+
+    total_amount, currency = await convert_currency(total_amount_usd, user_language)
 
     confirmation_message = i18n.order_confirmation(
         name=user_data["name"],
         phone=user_data["phone"],
         address=user_data["address"],
-        total_amount=total_amount,
+        total_amount=format_price(total_amount, currency),
     )
 
     keyboard = InlineKeyboardMarkup(
@@ -140,7 +147,7 @@ async def process_address(
     )
 
     await message.answer(confirmation_message, reply_markup=keyboard, parse_mode="HTML")
-    await state.update_data(amount_usd=float(total_amount))
+    await state.update_data(amount_usd=float(total_amount_usd))
     await state.set_state(OrderState.payment)
 
 
@@ -157,7 +164,10 @@ async def select_payment_method(
 
 @order_router.callback_query(F.data.startswith("crypto_"))
 async def process_crypto_payment(
-    callback: CallbackQuery, state: FSMContext, i18n: TranslatorRunner
+    callback: CallbackQuery,
+    state: FSMContext,
+    i18n: TranslatorRunner,
+    user_language: str,
 ):
     try:
         user_data = await state.get_data()
@@ -233,8 +243,10 @@ async def process_crypto_payment(
         else:
             crypto_format = f"{crypto_amount:.8f}"
 
+        display_amount, currency = await convert_currency(amount_usd, user_language)
+
         payment_message = i18n.payment_details(
-            amount_usd=amount_usd,
+            amount_usd=format_price(display_amount, currency),
             crypto_amount=crypto_format,
             crypto=crypto,
             expiration_time=expiration_time.strftime("%H:%M:%S"),
@@ -258,6 +270,7 @@ async def process_crypto_payment(
                 state,
                 user_data,
                 i18n,
+                user_language,
             )
         )
 
@@ -315,7 +328,15 @@ async def handle_star_payment(
 
 
 async def check_payment(
-    invoice_id, user_id, amount, crypto, bot, state, user_data, i18n: TranslatorRunner
+    invoice_id,
+    user_id,
+    amount,
+    crypto,
+    bot,
+    state,
+    user_data,
+    i18n: TranslatorRunner,
+    user_language: str,
 ):
     expiration_time = datetime.now() + timedelta(minutes=3)
 
@@ -336,10 +357,14 @@ async def check_payment(
                     await clear_cart(user_id)
                     order_status = await get_order_status(order.id)
 
+                    display_amount, currency = await convert_currency(
+                        float(amount), user_language
+                    )
+
                     success_message = i18n.payment_successful(
                         order_id=str(order.id),
                         order_status=order_status,
-                        amount=amount,
+                        amount=format_price(display_amount, currency),
                         crypto=crypto,
                         name=user_data["name"],
                         phone=user_data["phone"],
@@ -434,13 +459,15 @@ async def handle_edit(
 @order_router.message(Command("orders"))
 @order_router.callback_query(MenuCallBack.filter(F.menu_name == "orders"))
 async def process_orders_command(
-    update: Union[CallbackQuery, Message], i18n: TranslatorRunner
+    update: Union[CallbackQuery, Message],
+    i18n: TranslatorRunner,
+    user_language: str,
 ):
     try:
         user_id = update.from_user.id
         target = update.message if isinstance(update, CallbackQuery) else update
 
-        banner = await get_banner("orders")
+        banner = await get_banner("orders", user_language)
         orders = await get_user_orders(user_id)
 
         if not orders:
@@ -499,7 +526,10 @@ async def process_orders_command(
 
 @order_router.callback_query(OrderDetailCallBack.filter())
 async def process_order_detail(
-    callback: CallbackQuery, callback_data: OrderDetailCallBack, i18n: TranslatorRunner
+    callback: CallbackQuery,
+    callback_data: OrderDetailCallBack,
+    i18n: TranslatorRunner,
+    user_language: str,
 ):
     try:
         order = await get_order_by_id(callback_data.order_id)
@@ -512,23 +542,30 @@ async def process_order_detail(
             await callback.answer(i18n.order_no_products(), show_alert=True)
             return
 
-        total_sum = sum(float(item.price) * item.quantity for item in items)
+        total_sum_usd = sum(float(item.price) * item.quantity for item in items)
+        total_sum, currency = await convert_currency(total_sum_usd, user_language)
 
-        item_details_list = [
-            i18n.order_detail_item(
-                name=item.product.name,
-                quantity=int(item.quantity),
-                price=int(item.price),
+        item_details_list = []
+        for item in items:
+            item_price_usd = float(item.price)
+            item_price, item_currency = await convert_currency(
+                item_price_usd, user_language
             )
-            for item in items
-        ]
+
+            item_details_list.append(
+                i18n.order_detail_item(
+                    name=item.product.name,
+                    quantity=int(item.quantity),
+                    price=format_price(item_price, item_currency),
+                )
+            )
 
         final_text = (
             f"{i18n.order_detail_header(order_id=str(order.id)[:8], created_at=order.created_at.strftime('%d.%m.%Y %H:%M'), name=order.name, status=order.status, address=order.address, phone=str(order.phone))}"
             f"\n\n"
             f"{'\n'.join(item_details_list)}"
             f"\n\n"
-            f"{i18n.order_detail_total(total_sum=total_sum)}"
+            f"{i18n.order_detail_total(total_sum=format_price(total_sum, currency))}"
         )
 
         keyboard = InlineKeyboardMarkup(

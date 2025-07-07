@@ -1,8 +1,10 @@
 import os
+from typing import Any
 
 from aiogram.types import FSInputFile, InputMediaPhoto
 from django.conf import settings
 from fluentogram import TranslatorRunner
+from parler.utils.context import switch_language
 
 from keybords.inline import (
     get_products_btns,
@@ -20,6 +22,7 @@ from queries.category_queries import get_categories
 from queries.products_queries import get_products
 from utils.get_banner_image import get_banner_image
 from utils.paginator import Paginator
+from utils.utils import convert_currency, format_price
 
 
 async def main_menu(level: int, menu_name: str, i18n: TranslatorRunner) -> tuple:
@@ -28,11 +31,16 @@ async def main_menu(level: int, menu_name: str, i18n: TranslatorRunner) -> tuple
     return image, kbds
 
 
-async def catalog(level: int, menu_name: str, i18n: TranslatorRunner) -> tuple:
+async def catalog(level: int, menu_name: str, i18n: Any, user_language: str) -> tuple:
     image = await get_banner_image(menu_name, i18n)
     categories = await get_categories()
-    kbds = get_user_catalog_btns(level=level, categories=categories, i18n=i18n)
 
+    kbds = get_user_catalog_btns(
+        level=level,
+        categories=categories,
+        i18n=i18n,
+        user_language=user_language,
+    )
     return image, kbds
 
 
@@ -47,25 +55,31 @@ async def pages(paginator: Paginator, i18n: TranslatorRunner) -> dict:
     return btns
 
 
-async def products(level: int, category: int, page: int, i18n: TranslatorRunner):
+async def products(
+    level: int, category: int, page: int, i18n: TranslatorRunner, user_language: str
+) -> tuple:
     products = await get_products(category_id=category)
 
     paginator = Paginator(products, page)
     product = paginator.get_page()[0]
-
-    if product.image:
-        image = InputMediaPhoto(
-            media=FSInputFile(product.image.path),
-            caption=i18n.product_details(
-                name=product.name,
-                description=product.description,
-                price=round(product.price, 2),
-                current_page=paginator.page,
-                total_pages=paginator.pages,
-            ),
+    with switch_language(product, user_language):
+        converted_price, current_symbol = await convert_currency(
+            product.price, user_language
         )
-    else:
-        raise ValueError(i18n.product_no_image())
+        formatted_price = format_price(converted_price, current_symbol)
+        if product.image:
+            image = InputMediaPhoto(
+                media=FSInputFile(product.image.path),
+                caption=i18n.product_details(
+                    name=product.name,
+                    description=product.description,
+                    price=formatted_price,
+                    current_page=paginator.page,
+                    total_pages=paginator.pages,
+                ),
+            )
+        else:
+            raise ValueError(i18n.product_no_image())
 
     pagination_btns = await pages(paginator, i18n=i18n)
 
@@ -76,12 +90,21 @@ async def products(level: int, category: int, page: int, i18n: TranslatorRunner)
         page=page,
         pagination_btns=pagination_btns,
         product_id=product.id,
+        user_language=user_language,
     )
 
     return image, kbds
 
 
-async def carts(level, menu_name, page, user_id, product_id, i18n: TranslatorRunner):
+async def carts(
+    level,
+    menu_name,
+    page,
+    user_id,
+    product_id,
+    i18n: TranslatorRunner,
+    user_language: str,
+):
     if menu_name == "delete":
         await delete_from_cart(user_id, product_id)
         if page > 1:
@@ -105,8 +128,19 @@ async def carts(level, menu_name, page, user_id, product_id, i18n: TranslatorRun
         paginator = Paginator(carts, page=page)
         cart = paginator.get_page()[0]
 
-        cart_price = round(cart.quantity * cart.product.price, 2)
-        total_price = round(sum(c.quantity * c.product.price for c in carts), 2)
+        converted_product_price, currency_symbol = await convert_currency(
+            cart.product.price, user_language
+        )
+        formatted_product_price = format_price(converted_product_price, currency_symbol)
+
+        cart_price = cart.quantity * converted_product_price
+        formatted_cart_price = format_price(cart_price, currency_symbol)
+
+        total_price = 0
+        for c in carts:
+            converted_price, _ = await convert_currency(c.product.price, user_language)
+            total_price += c.quantity * converted_price
+        formatted_total_price = format_price(total_price, currency_symbol)
 
         if cart.product.image:
             image_path = os.path.join(settings.MEDIA_ROOT, str(cart.product.image))
@@ -115,12 +149,12 @@ async def carts(level, menu_name, page, user_id, product_id, i18n: TranslatorRun
                     media=FSInputFile(image_path),
                     caption=i18n.cart_item_details(
                         name=cart.product.name,
-                        price=cart.product.price,
+                        price=formatted_product_price,
                         quantity=cart.quantity,
-                        cart_price=cart_price,
+                        cart_price=formatted_cart_price,
                         current_page=paginator.page,
                         total_pages=paginator.pages,
-                        total_price=total_price,
+                        total_price=formatted_total_price,
                     ),
                 )
             else:
@@ -144,17 +178,28 @@ async def carts(level, menu_name, page, user_id, product_id, i18n: TranslatorRun
 async def get_menu_content(
     level: int,
     menu_name: str,
-    i18n: TranslatorRunner,
+    i18n,
     category: int | None = None,
     page: int | None = None,
     product_id: int | None = None,
     user_id: int | None = None,
+    user_language: str = "en",
 ):
     if level == 0:
         return await main_menu(level, menu_name, i18n=i18n)
     elif level == 1:
-        return await catalog(level, menu_name, i18n=i18n)
+        return await catalog(level, menu_name, i18n=i18n, user_language=user_language)
     elif level == 2:
-        return await products(level, category, page, i18n=i18n)
+        return await products(
+            level, category, page, i18n=i18n, user_language=user_language
+        )
     elif level == 3:
-        return await carts(level, menu_name, page, user_id, product_id, i18n=i18n)
+        return await carts(
+            level,
+            menu_name,
+            page,
+            user_id,
+            product_id,
+            i18n=i18n,
+            user_language=user_language,
+        )

@@ -24,10 +24,14 @@ user_private_router.message.filter(ChatTypeFilter(["private"]))
 )
 @user_private_router.callback_query(MenuCallBack.filter())
 async def process_menu_command(
-    update: Union[CallbackQuery, Message], state: FSMContext, i18n: TranslatorRunner
+    update: Union[CallbackQuery, Message],
+    state: FSMContext,
+    i18n: TranslatorRunner,
+    user_language: str,
 ) -> None:
     try:
         user_id = update.from_user.id
+
         if not await CaptchaManager.has_passed_recently(user_id):
             target_message = (
                 update.message if isinstance(update, CallbackQuery) else update
@@ -71,13 +75,14 @@ async def process_menu_command(
             level=level,
             menu_name=menu_name,
             i18n=i18n,
+            user_language=user_language,
             category=category,
             page=page,
             product_id=product_id,
             user_id=user_id,
         )
 
-        banner = await get_banner(menu_name) if level == 0 else None
+        banner = await get_banner(menu_name, user_language) if level == 0 else None
         if banner and isinstance(content, types.InputMediaPhoto):
             content.caption = banner.description
 
@@ -89,9 +94,8 @@ async def process_menu_command(
                     await target.edit_text(
                         text=content, reply_markup=keyboard, parse_mode="HTML"
                     )
-            except TelegramBadRequest as e:
-                if "message is not modified" not in str(e):
-                    print(f"ERROR in process_menu_command: {e}")
+            except TelegramBadRequest:
+                print("Failed to edit message, sending as new message instead.")
             finally:
                 await update.answer()
         else:
