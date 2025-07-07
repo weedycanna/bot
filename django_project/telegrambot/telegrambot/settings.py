@@ -50,6 +50,7 @@ INSTALLED_APPS: List[str] = [
     "django.contrib.staticfiles",
     "django_project.telegrambot.usersmanage",
     "phonenumber_field",
+    "parler",
 ]
 
 MIDDLEWARE: List[str] = [
@@ -81,6 +82,18 @@ TEMPLATES: List[Dict[str, str]] = [
 ]
 
 WSGI_APPLICATION: str = "django_project.telegrambot.telegrambot.wsgi.application"
+
+
+PARLER_LANGUAGES = {
+    None: (
+        {"code": "en"},
+        {"code": "ru"},
+    ),
+    "default": {
+        "fallbacks": ["en"],
+        "hide_untranslated": False,
+    },
+}
 
 
 # Database
