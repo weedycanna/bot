@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
+from parler.admin import TranslatableAdmin
 
 from .models import (
     AdminUser,
@@ -32,7 +33,7 @@ class AdminUserAdmin(admin.ModelAdmin):
 
 
 @admin.register(Banner)
-class BannerAdmin(admin.ModelAdmin):
+class BannerAdmin(TranslatableAdmin):
     def thumbnail(self, object):
         return format_html('<img src="{}" width="100";" />'.format(object.image.url))
 
@@ -50,7 +51,7 @@ class BannerAdmin(admin.ModelAdmin):
 
 
 @admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
+class CategoryAdmin(TranslatableAdmin):
     list_display = ("id", "name", "created_at", "updated_at")
     search_fields = ("name",)
     list_filter = ("created_at", "updated_at")
@@ -58,7 +59,7 @@ class CategoryAdmin(admin.ModelAdmin):
 
 
 @admin.register(Product)
-class ProductAdmin(admin.ModelAdmin):
+class ProductAdmin(TranslatableAdmin):
     def thumbnail(self, object):
         if object.image:
             return format_html('<img src="{}" width="40";" />'.format(object.image.url))
@@ -70,6 +71,7 @@ class ProductAdmin(admin.ModelAdmin):
         "price",
         "category",
         "thumbnail",
+        "description",
         "created_at",
         "updated_at",
     )
