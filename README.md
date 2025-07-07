@@ -13,6 +13,7 @@ In the bot you can find such functions:
    - Admin panel in Telegram and Django Admin
    - CRUD operations for managing products, categories, and banners
    - Captcha for spam protection
+   - Localization
 
 #### Stack:
 
