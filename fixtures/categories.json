@@ -1,20 +1,54 @@
 [
 {
   "model": "usersmanage.category",
-  "pk": 1,
+  "pk": 4,
   "fields": {
-    "created_at": "2024-12-25T23:40:48.360Z",
-    "updated_at": "2024-12-25T23:40:48.360Z",
-    "name": "Food"
+    "created_at": "2025-07-06T17:46:09.097Z",
+    "updated_at": "2025-07-06T17:46:14.560Z"
   }
 },
 {
   "model": "usersmanage.category",
-  "pk": 2,
+  "pk": 5,
   "fields": {
-    "created_at": "2024-12-25T23:40:52.637Z",
-    "updated_at": "2024-12-25T23:40:52.637Z",
-    "name": "Beverages"
+    "created_at": "2025-07-06T17:46:23.326Z",
+    "updated_at": "2025-07-06T17:46:31.705Z"
+  }
+},
+{
+  "model": "usersmanage.categorytranslation",
+  "pk": 6,
+  "fields": {
+    "language_code": "en",
+    "name": "Food",
+    "master": 4
+  }
+},
+{
+  "model": "usersmanage.categorytranslation",
+  "pk": 7,
+  "fields": {
+    "language_code": "ru",
+    "name": "Еда",
+    "master": 4
+  }
+},
+{
+  "model": "usersmanage.categorytranslation",
+  "pk": 8,
+  "fields": {
+    "language_code": "en",
+    "name": "Beverages",
+    "master": 5
+  }
+},
+{
+  "model": "usersmanage.categorytranslation",
+  "pk": 9,
+  "fields": {
+    "language_code": "ru",
+    "name": "Напитки",
+    "master": 5
   }
 }
 ]

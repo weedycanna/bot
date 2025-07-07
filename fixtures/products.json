@@ -1,54 +1,126 @@
 [
 {
   "model": "usersmanage.product",
+  "pk": 9,
+  "fields": {
+    "created_at": "2025-07-07T10:55:02.228Z",
+    "updated_at": "2025-07-07T10:55:33.227Z",
+    "price": "11.00",
+    "image": "products/pizza-margarita.png",
+    "category": 4
+  }
+},
+{
+  "model": "usersmanage.product",
+  "pk": 10,
+  "fields": {
+    "created_at": "2025-07-07T10:56:08.080Z",
+    "updated_at": "2025-07-07T10:58:52.575Z",
+    "price": "13.00",
+    "image": "products/Neapolitan_pizza_in_Fort_Lauderdale_Florida.jpg",
+    "category": 4
+  }
+},
+{
+  "model": "usersmanage.product",
+  "pk": 11,
+  "fields": {
+    "created_at": "2025-07-07T10:58:28.217Z",
+    "updated_at": "2025-07-07T10:59:42.548Z",
+    "price": "2.00",
+    "image": "products/napitok-pepsi-kola-0-5l-1037871-0.jpg",
+    "category": 5
+  }
+},
+{
+  "model": "usersmanage.product",
+  "pk": 12,
+  "fields": {
+    "created_at": "2025-07-07T10:59:20.480Z",
+    "updated_at": "2025-07-07T10:59:30.187Z",
+    "price": "3.00",
+    "image": "products/ua_pet_500_fanta_orange_05-2025.webp",
+    "category": 5
+  }
+},
+{
+  "model": "usersmanage.producttranslation",
   "pk": 1,
   "fields": {
-    "created_at": "2024-12-25T23:44:53.126Z",
-    "updated_at": "2024-12-25T23:44:53.126Z",
-    "name": "PEPSI 0,5",
-    "description": "бутылка - 500 мл",
-    "price": "2.00",
-    "image": "products/PEPSI_0_RSqawhQ.5.jpg",
-    "category": 2
+    "language_code": "en",
+    "name": "Pizza Margherita",
+    "description": "Round pizza with red (tomatoes), white (mozzarella) and green (basil) ingredients arranged in a flower shape.",
+    "master": 9
   }
 },
 {
-  "model": "usersmanage.product",
+  "model": "usersmanage.producttranslation",
   "pk": 2,
   "fields": {
-    "created_at": "2024-12-25T23:45:15.997Z",
-    "updated_at": "2024-12-25T23:45:15.997Z",
-    "name": "Green tea 0.5",
-    "description": "бутылка - 500 мл",
-    "price": "3.00",
-    "image": "products/62ba0d13fe7382e06680745851b974d7_ZL4V1Sq.jpg",
-    "category": 2
+    "language_code": "ru",
+    "name": "Пицца Маргарита",
+    "description": "Круглая пицца с красными (помидоры), белыми (моцарелла) и зелеными (базилик) ингредиентами, выложенными в виде цветов.",
+    "master": 9
   }
 },
 {
-  "model": "usersmanage.product",
+  "model": "usersmanage.producttranslation",
   "pk": 3,
   "fields": {
-    "created_at": "2024-12-25T23:45:39.204Z",
-    "updated_at": "2024-12-25T23:45:39.204Z",
-    "name": "Chiccone pizza 30 см",
-    "description": "помидоры, сыр, грибы, томатная паста, огурцы, оливки",
-    "price": "11.00",
-    "image": "products/CHICCONE_pizza_q6jt7IB.jpg",
-    "category": 1
+    "language_code": "en",
+    "name": "Pizza Napoletana",
+    "description": "Similar to Margarita, but the dough may be thinner and have slight scorch marks from the oven.",
+    "master": 10
   }
 },
 {
-  "model": "usersmanage.product",
+  "model": "usersmanage.producttranslation",
   "pk": 4,
   "fields": {
-    "created_at": "2024-12-25T23:46:04.031Z",
-    "updated_at": "2024-12-25T23:46:04.031Z",
-    "name": "Quatro scaceni pizza 30 см",
-    "description": "помидоры, сыр, грибы, томатная паста, огурцы, ананасы",
-    "price": "14.00",
-    "image": "products/QUATRO_STACENI_pizza_HVsata0.jpg",
-    "category": 1
+    "language_code": "ru",
+    "name": "Неаполитанская пицца",
+    "description": "Похожа на Маргариту, но тесто может быть более тонким и с небольшими подпалинами от печи.",
+    "master": 10
+  }
+},
+{
+  "model": "usersmanage.producttranslation",
+  "pk": 5,
+  "fields": {
+    "language_code": "en",
+    "name": "PEPSI",
+    "description": "2 Liters",
+    "master": 11
+  }
+},
+{
+  "model": "usersmanage.producttranslation",
+  "pk": 6,
+  "fields": {
+    "language_code": "ru",
+    "name": "Пепси",
+    "description": "2 Литра",
+    "master": 11
+  }
+},
+{
+  "model": "usersmanage.producttranslation",
+  "pk": 7,
+  "fields": {
+    "language_code": "en",
+    "name": "Fanta",
+    "description": "2 Liters",
+    "master": 12
+  }
+},
+{
+  "model": "usersmanage.producttranslation",
+  "pk": 8,
+  "fields": {
+    "language_code": "ru",
+    "name": "Фанта",
+    "description": "2 литра",
+    "master": 12
   }
 }
 ]
