@@ -110,7 +110,7 @@ product_added_to_cart = Товар добавлен в корзину.
 error_adding_to_cart = Ошибка добавления товара в корзину.
 cart_item_details =
     <strong>{$name}</strong>
-    {$price}$ x {$quantity} = {$cart_price}$
+    {$price} x {$quantity} = {$cart_price}
     Товар {$current_page} из {$total_pages} в корзине.
     Общая цена в корзине {$total_price}
 
@@ -130,7 +130,7 @@ order_confirmation =
         • Телефон: <code>{$phone}</code>
         • Адрес: <code>{$address}</code>
     <i>💰 Информация об оплате:</i>
-        • Общая сумма: <b>{$total_amount}$</b>
+        • Общая сумма: <b>{$total_amount}</b>
     <i>⬇️ Пожалуйста, выберите способ оплаты ниже</i>
 select_payment_btn = Выбрать способ оплаты 💳
 cancel_order_btn = Отменить ❌
@@ -148,7 +148,7 @@ star_payment_description = Оплата на сумму {$stars_amount} звез
 payment_details =
     <b>📋 Детали платежа</b>
     <i>💰 Информация об оплате:</i>
-        • Сумма USD: <b>${$amount_usd}</b>
+        • Сумма USD: <b>{$amount_usd}</b>
         • Сумма {$crypto}: <b>{$crypto_amount}</b>
         • Валюта: <b>{$crypto}</b>
         • Истекает: <code>{$expiration_time}</code>
@@ -160,7 +160,7 @@ payment_successful =
         • ID заказа: <code>{$order_id}</code>
         • Статус: <b>{$order_status}</b>
     <i>Детали платежа:</i>
-        • Сумма: <b>${$amount}</b>
+        • Сумма: <b>{$amount}</b>
         • Валюта: <b>{$crypto}</b>
     <i>Информация о доставке:</i>
         • Имя: <code>{$name}</code>

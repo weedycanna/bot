@@ -4,7 +4,7 @@ from fluent_compiler.bundle import FluentBundle
 from fluentogram import FluentTranslator, TranslatorHub
 
 
-def setup_localization():
+def setup_localization() -> TranslatorHub:
     locales_dir = Path(__file__).parent / "locales"
 
     en_translator = FluentTranslator(
@@ -28,6 +28,7 @@ def setup_localization():
         },
         translators=[en_translator, ru_translator],
         root_locale="en",
+        separator="_",
     )
 
     return translator_hub
