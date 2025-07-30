@@ -1,6 +1,5 @@
 <h1 align="center"> 🍕 Telegram Pizzeria Bot 🍕 </h1>
 
-<!-- BADGES -->
 </br>
 
 <p align="center">
@@ -12,7 +11,6 @@
   </br>
 </p>
 
-<!-- INFORMATION -->
 <h1 align="left"> 📋 About</h1> 
 
 <img src="images/main_menu.png" alt="Main Menu" align="right" width="500px">
@@ -29,7 +27,6 @@ This bot was created to simplify the process of ordering pizza directly through 
 
 </br>
 
-<!-- IMAGES -->
 ## 🖼️ Gallery
 
 ### 📱 Main Menu
@@ -53,7 +50,7 @@ This bot was created to simplify the process of ordering pizza directly through 
 ### 📈 Statistics Dashboard
 ![Statistics](images/statistics.png)
 
-<!-- FEATURES -->
+
 ## 🚀 Features
 * Viewing the catalog with convenient navigation and pagination
 * Payment via Telegram Pay and cryptocurrency payments
@@ -67,22 +64,7 @@ This bot was created to simplify the process of ordering pizza directly through 
 * Captcha for spam protection
 * Localization
 
-<table align="center">
-   <tr>
-      <th align="center">
-         <sup>⚡ PERFORMANCE ⚡</sup>
-      </th>
-   </tr>
-   <tr>
-      <td align="center">
-        🚀 LIGHTNING FAST RESPONSE TIME<br>
-        🔒 SECURE PAYMENT PROCESSING<br>
-        📱 MOBILE-OPTIMIZED INTERFACE<br>
-        🌐 MULTI-LANGUAGE SUPPORT
-   </tr>
-</table>
 
-<!-- INSTALLATION -->
 ## 🛠️ Local Developing
 All actions should be executed from the source directory of the project and only after installing all requirements.
 
@@ -129,10 +111,4 @@ Run a file called app.
 * **Admin Panel** - `/admin` (admin only)
 
 ## 📞 Contact 
-To contact the author of the project, write to email dmitriybirilko@gmail.com or visit our [YouTube channel](https://youtube.com/@zproger) and [Telegram](https://t.me/codeblog8).
-
----
-
-<p align="center">
-  ⭐ Star this repository if you found it helpful!
-</p>
+To contact the author of the project, write to email dmitriybirilko@gmail.com
