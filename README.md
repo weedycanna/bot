@@ -13,16 +13,12 @@
 </p>
 
 <h1 align="left"> 📋 About</h1> 
-<img src="" alt="Main Menu" align="right" width="500px">
-</br>
-
-<h1 align="left"> 📋 About</h1> 
-
-<img src="images/main_menu.png" alt="Main Menu" align="right" width="500px">
 
 </br>
 
 This bot was created to simplify the process of ordering pizza directly through Telegram. With an intuitive interface, users can effortlessly browse the menu, place orders, and make payments, all within a single chat. The bot ensures a smooth, secure, and efficient experience for both customers and administrators. For enhanced management, the bot features an advanced admin panel accessible via Telegram and Django Admin, providing a user-friendly interface for handling orders, products, categories, and etc. PostgreSQL is used as a reliable database for securely storing user data, orders, and catalog information, ensuring data integrity and performance. Additionally, Docker is implemented for easy deployment and scalability, allowing the bot to run seamlessly across different environments.
+
+## Stack:
 
  - **Backend**: [**`Python 3.12+`**](https://python.org/)
  - **Framework**: [**`Aiogram 3.0+`**](https://docs.aiogram.dev/)
@@ -32,28 +28,29 @@ This bot was created to simplify the process of ordering pizza directly through 
 
 </br>
 
-## 🖼️ Gallery
-
 ### 📱 Main Menu
-![Main Menu](images/main_menu.png)
+![Main Menu](demonstration/1.png)
 
 ### 🛒 Catalog & Ordering  
-![Catalog](images/catalog.png)
+![Catalog](demonstration/3.png)
+![Orders](demonstration/8.png)
+![Orders Details](demonstration/9.png)
 
-### 👨‍💼 Admin Panel
-![Admin Panel](images/admin_panel.png)
+### 👨‍💼 Admin Panel via Telegram or Django
+![Admin Panel Telegram](demonstration/10.png)
+![Admin Panel Django](demonstration/11.png)
 
 ### 🔒 Captcha Protection
-![Captcha](images/captcha.png)
+![Captcha](demonstration/2.png)
 
-### 📊 Order Management
-![Orders](images/orders.png)
+### 👤 User Profile
+![Profile](demonstration/4.png)
 
 ### 💳 Payment System
 ![Payment](images/payment.png)
 
-### 📈 Statistics Dashboard
-![Statistics](images/statistics.png)
+### 🛒 Cart
+![Cart](images/statistics.png)
 
 
 ## 🚀 Features
@@ -108,11 +105,13 @@ Run a file called app.
 ```
 
 ## 💻 HotKeys
-* **Main Menu** - `/start`
-* **View Catalog** - `/menu`
-* **My Orders** - `/orders`
+* **Start** - `/start`
+* **Main menu** - `/menu`
+* **About** - `/about`
 * **User Profile** - `/profile`
-* **Help** - `/help`
+* **Payment** - `/payment`
+* **Orders** - `/orders`
+* **Shipping** - `/shipping`
 * **Admin Panel** - `/admin` (admin only)
 
 ## 📞 Contact 
