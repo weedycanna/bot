@@ -52,54 +52,106 @@ This bot was created to simplify the process of ordering pizza directly through 
 <img src="demonstration/6.png" width="400" alt="Cart">
 
 ## 🚀 Features
-* Viewing the catalog with convenient navigation and pagination
-* Payment via Telegram Pay and cryptocurrency payments
-* Placing orders and viewing order details
-* Subscription check before using the bot
-* User registration and profile with order history
-* Sending notifications and messages to users
-* Sales and activity statistics
-* Admin panel in Telegram and Django Admin
+
+### 👨‍💼 For Administrators
+* Advanced admin panel accessible via Telegram and Django Admin
 * CRUD operations for managing products, categories, and banners
-* Captcha for spam protection
-* Localization
+* Sales and activity statistics with detailed analytics
+* User management and order monitoring
+* Sending notifications and messages to users
+* Order status management and processing
+* Product inventory control
 
+### 👤 For Users
+* Intuitive catalog browsing with navigation and pagination
+* Payment via Telegram Pay and cryptocurrency payments
+* Easy order placement and order history viewing
+* User profile with personal information and preferences
+* Shopping cart functionality with quantity management
+* Real-time order tracking and notifications
+* Captcha protection for security
+* Localization support for multiple languages
+* Subscription verification before bot usage
 
-## 🛠️ Local Developing
-All actions should be executed from the source directory of the project and only after installing all requirements.
+## 🛠️ Local Development
 
-1. Firstly, create and activate a new virtual environment:
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/your-username/telegram-pizzeria-bot.git
+   cd telegram-pizzeria-bot
+   ```
+
+2. **Create and activate virtual environment:**
    ```bash
    python3.12 -m venv ../venv
    source ../venv/bin/activate
    ```
    
-2. Install packages:
+3. **Install dependencies:**
    ```bash
    pip install --upgrade pip
    pip install -r requirements.txt
    ```
-   
-3. Install database:
+
+4. **Configure environment variables:**
+   ```bash
+   cp .env.example .env
    ```
-   For production Postgresql
-   For local Sqlite3
+   
+   Open `.env` file and fill in all required environment variables:
+   
+   ```env
+   # Bot Configuration
+   TOKEN=your_telegram_bot_token_here
+   
+   # Database Configuration
+   DB_PG=postgresql+asyncpg://username:password@localhost:5432/database_name
+   
+   # Payment Configuration
+   CRYPTO_TOKEN=your_crypto_payment_token_here
+   STAR_PAYMENT_TOKEN=your_star_payment_token_here
+   
+   # Other required variables...
    ```
 
-## 🐳 Docker 
-   ```bash
-   docker build .
-   docker-compose up
+   **Where to get tokens:**
+   - **Telegram Bot Token**: Create a bot via [@BotFather](https://t.me/botfather)
+   - **Crypto Payment Token**: Get from your cryptocurrency payment provider
+   - **Star Payment Token**: Get from Telegram Bot API documentation
+
+5. **Set up database:**
    ```
-   
-## 🚀 Run application
+   For production: PostgreSQL
+   For local development: SQLite3
+   ```
+
+6. **Create Django superuser:**
+   ```bash
+   cd src
+   python manage.py createsuperuser
+   ```
+
+7. **Run the application:**
+   ```bash
+   python app.py
+   ```
+
+## 🐳 Docker Deployment
+
+### Quick Start
+```bash
+docker build .
+docker-compose up -d
 ```
-Example env values
-TOKEN=7765659692:AAG0gyOcBtuFiu2Ab1-9P0YYg0KtYy-tYEW
-DB_PG=postgresql+asyncpg://test:tests@localhost:5432/test
-CRYPTO_TOKEN=17965:AA83cK37am3814tjP8R50mqFiy5EgRQYzca
-STAR_PAYMENT_TOKEN=439694247:TEST:21a24e76-d547-4cbd-bdba-2a98f9aa474e
-Run a file called app.
+
+### View logs
+```bash
+docker-compose logs -f
+```
+
+### Create superuser via Docker
+```bash
+docker-compose exec web python src/manage.py createsuperuser
 ```
 
 ## 💻 HotKeys
