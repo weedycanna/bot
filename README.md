@@ -30,19 +30,19 @@ This bot was created to simplify the process of ordering pizza directly through 
 <img src="demonstration/1.png" width="400" alt="Main Menu">
 
 ### 🛒 Catalog & Ordering  
-<img src="demonstration/3.png" width="400" alt="Catalog" align="left">
-<img src="demonstration/5.png" width="400" alt="Product Cart" align="right">
+<img src="demonstration/3.png" width="400" alt="Catalog" align="left" style="vertical-align: top;">
+<img src="demonstration/5.png" width="400" alt="Product Cart" align="right" style="vertical-align: top;">
 
 <br clear="both"/>
 
-<img src="demonstration/8.png" width="400" alt="Orders" align="left">  
-<img src="demonstration/9.png" width="400" alt="Order Details" align="right">
+<img src="demonstration/8.png" width="400" alt="Orders" align="left" style="vertical-align: top;">  
+<img src="demonstration/9.png" width="400" alt="Order Details" align="right" style="vertical-align: top;">
 
 <br clear="both"/>
 
 ### 👨‍💼 Admin Panel via Telegram or Django
-<img src="demonstration/10.png" width="400" alt="Admin Panel Telegram" align="left">
-<img src="demonstration/11.png" width="400" alt="Admin Panel Django" align="right">
+<img src="demonstration/10.png" width="400" alt="Admin Panel Telegram" align="left" style="vertical-align: top;">
+<img src="demonstration/11.png" width="400" alt="Admin Panel Django" align="right" style="vertical-align: top;">
 
 <br clear="both"/>
 
