@@ -26,33 +26,65 @@ This bot was created to simplify the process of ordering pizza directly through 
  - **Admin Panel**: [**`Django`**](https://djangoproject.com/)
  - **Deployment**: [**`Docker`**](https://docker.com/)
 
-</br>
 
-### 📱 Main Menu
-![Main Menu](demonstration/1.png)
-
-### 🛒 Catalog & Ordering  
-![Catalog](demonstration/3.png)
-![Product Cart](demonstration/5.png)
-![Orders](demonstration/8.png)
-![Orders Details](demonstration/9.png)
-
-### 👨‍💼 Admin Panel via Telegram or Django
-![Admin Panel Telegram](demonstration/10.png)
-![Admin Panel Django](demonstration/11.png)
-
-### 🔒 Captcha Protection
-![Captcha](demonstration/2.png)
-
-### 👤 User Profile
-![Profile](demonstration/4.png)
-
-### 💳 Payment System
-![Payment](demonstration/7.png)
-
-### 🛒 Cart
-![Cart](demonstration/6.png)
-
+<table align="center">
+  <tr>
+    <td align="center" width="50%">
+      <b>📱 Main Menu</b><br/>
+      <img src="demonstration/1.png" width="300px" alt="Main Menu"/>
+    </td>
+    <td align="center" width="50%">
+      <b>🔒 Captcha Protection</b><br/>
+      <img src="demonstration/2.png" width="300px" alt="Captcha"/>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <b>🛒 Product Catalog</b><br/>
+      <img src="demonstration/3.png" width="300px" alt="Catalog"/>
+    </td>
+    <td align="center">
+      <b>👤 User Profile</b><br/>
+      <img src="demonstration/4.png" width="300px" alt="Profile"/>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <b>🛍️ Product Details</b><br/>
+      <img src="demonstration/5.png" width="300px" alt="Product Cart"/>
+    </td>
+    <td align="center">
+      <b>🛒 Shopping Cart</b><br/>
+      <img src="demonstration/6.png" width="300px" alt="Cart"/>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <b>💳 Payment System</b><br/>
+      <img src="demonstration/7.png" width="300px" alt="Payment"/>
+    </td>
+    <td align="center">
+      <b>📦 Order History</b><br/>
+      <img src="demonstration/8.png" width="300px" alt="Orders"/>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <b>📋 Order Details</b><br/>
+      <img src="demonstration/9.png" width="300px" alt="Order Details"/>
+    </td>
+    <td align="center">
+      <b>👨‍💼 Admin Panel (Telegram)</b><br/>
+      <img src="demonstration/10.png" width="300px" alt="Admin Telegram"/>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" colspan="2">
+      <b>🖥️ Admin Panel (Django)</b><br/>
+      <img src="demonstration/11.png" width="600px" alt="Admin Django"/>
+    </td>
+  </tr>
+</table>
 
 ## 🚀 Features
 * Viewing the catalog with convenient navigation and pagination
