@@ -33,6 +33,7 @@ This bot was created to simplify the process of ordering pizza directly through 
 
 ### 🛒 Catalog & Ordering  
 ![Catalog](demonstration/3.png)
+![Product Cart](demonstration/5.png)
 ![Orders](demonstration/8.png)
 ![Orders Details](demonstration/9.png)
 
@@ -47,10 +48,10 @@ This bot was created to simplify the process of ordering pizza directly through 
 ![Profile](demonstration/4.png)
 
 ### 💳 Payment System
-![Payment](images/payment.png)
+![Payment](demonstration/7.png)
 
 ### 🛒 Cart
-![Cart](images/statistics.png)
+![Cart](demonstration/6.png)
 
 
 ## 🚀 Features
