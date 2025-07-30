@@ -41,6 +41,7 @@ This bot was created to simplify the process of ordering pizza directly through 
 
 ### 🔒 Captcha Protection
 <img src="demonstration/2.png" width="400" alt="Captcha">
+
 ### 👤 User Profile
 <img src="demonstration/4.png" width="400" alt="Profile">
 
