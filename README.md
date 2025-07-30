@@ -1,7 +1,6 @@
 <h1 align="center"> 🍕 Telegram Pizzeria Bot 🍕 </h1>
 
 </br>
-
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.12+-blue?style=for-the-badge&logo=python&logoColor=white">
   <img src="https://img.shields.io/badge/Aiogram-3.0+-red?style=for-the-badge&logo=telegram&logoColor=white">
@@ -9,7 +8,13 @@
   <img src="https://img.shields.io/badge/PostgreSQL-13+-blue?style=for-the-badge&logo=postgresql&logoColor=white">
   <img src="https://img.shields.io/badge/Docker-Ready-blue?style=for-the-badge&logo=docker&logoColor=white">
   </br>
+  <img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge">
+  </br>
 </p>
+
+<h1 align="left"> 📋 About</h1> 
+<img src="" alt="Main Menu" align="right" width="500px">
+</br>
 
 <h1 align="left"> 📋 About</h1> 
 
