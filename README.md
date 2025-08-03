@@ -27,32 +27,29 @@ This bot was created to simplify the process of ordering pizza directly through 
  - **Deployment**: [**`Docker`**](https://docker.com/)
 
 ### 📱 Main Menu
-
-<div align="center">
-<img src="demonstration/1.png" width="800" alt="Main Menu">
+<img src="demonstration/1.png" width="400" alt="Main Menu">
 
 ### 🛒 Catalog & Ordering  
-<img src="demonstration/3.png" width="500" alt="Catalog">
-<img src="demonstration/5.png" width="500" alt="Product Cart">
-<img src="demonstration/8.png" width="500" alt="Orders">
-<img src="demonstration/9.png" width="500" alt="Order Details">
+<img src="demonstration/3.png" width="400" alt="Catalog">
+<img src="demonstration/5.png" width="400" alt="Product Cart">
+<img src="demonstration/8.png" width="400" alt="Orders">
+<img src="demonstration/9.png" width="400" alt="Order Details">
 
 ### 👨‍💼 Admin Panel via Telegram or Django
-<img src="demonstration/10.png" width="500" alt="Admin Panel Telegram">
-<img src="demonstration/11.png" width="500" alt="Admin Panel Django">
+<img src="demonstration/10.png" width="400" alt="Admin Panel Telegram">
+<img src="demonstration/11.png" width="400" alt="Admin Panel Django">
 
 ### 🔒 Captcha Protection
-<img src="demonstration/2.png" width="500" alt="Captcha">
+<img src="demonstration/2.png" width="400" alt="Captcha">
 
 ### 👤 User Profile
-<img src="demonstration/4.png" width="500" alt="Profile">
+<img src="demonstration/4.png" width="400" alt="Profile">
 
 ### 💳 Payment System
-<img src="demonstration/7.png" width="500" alt="Payment">
+<img src="demonstration/7.png" width="400" alt="Payment">
 
 ### 🛒 Cart
-<img src="demonstration/6.png" width="500" alt="Cart">
-</div>
+<img src="demonstration/6.png" width="400" alt="Cart">
 
 ## 🚀 Features
 
