@@ -5,13 +5,8 @@ from typing import Any
 from aiogram import Router, types
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
-from aiogram.types import (
-    CallbackQuery,
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-    Message,
-    ReplyKeyboardRemove,
-)
+from aiogram.types import (CallbackQuery, InlineKeyboardButton,
+                           InlineKeyboardMarkup, Message, ReplyKeyboardRemove)
 from asgiref.sync import sync_to_async
 from django.utils import timezone
 from fluentogram import TranslatorRunner

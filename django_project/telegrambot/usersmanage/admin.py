@@ -2,17 +2,8 @@ from django.contrib import admin
 from django.utils.html import format_html
 from parler.admin import TranslatableAdmin
 
-from .models import (
-    AdminUser,
-    Banner,
-    CaptchaRecord,
-    Cart,
-    Category,
-    Order,
-    OrderItem,
-    Product,
-    TelegramUser,
-)
+from .models import (AdminUser, Banner, CaptchaRecord, Cart, Category, Order,
+                     OrderItem, Product, TelegramUser)
 
 
 @admin.register(AdminUser)

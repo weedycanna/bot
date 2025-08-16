@@ -6,7 +6,7 @@
     "created_at": "2024-12-25T23:41:16.445Z",
     "updated_at": "2025-07-04T18:42:21.251Z",
     "name": "main",
-    "image": "banners/main_CLJIAvr.jpg"
+    "image": "banners/main.jpg"
   }
 },
 {
@@ -16,7 +16,7 @@
     "created_at": "2024-12-25T23:42:00.741Z",
     "updated_at": "2025-07-04T18:42:33.993Z",
     "name": "shipping",
-    "image": "banners/shipping_vbbACxM.jpg"
+    "image": "banners/shipping.jpg"
   }
 },
 {
@@ -26,7 +26,7 @@
     "created_at": "2024-12-25T23:42:14.883Z",
     "updated_at": "2025-07-04T18:42:46.431Z",
     "name": "cart",
-    "image": "banners/cart_kxFwx4s.jpg"
+    "image": "banners/cart.jpg"
   }
 },
 {
@@ -36,7 +36,7 @@
     "created_at": "2024-12-25T23:43:10.652Z",
     "updated_at": "2025-07-04T18:42:57.668Z",
     "name": "about",
-    "image": "banners/about_V0EPRIi.jpg"
+    "image": "banners/about.jpg"
   }
 },
 {
@@ -46,7 +46,7 @@
     "created_at": "2024-12-25T23:43:22.975Z",
     "updated_at": "2025-07-04T18:43:08.037Z",
     "name": "orders",
-    "image": "banners/orders_g76nXwU.jfif"
+    "image": "banners/orders.jpg"
   }
 },
 {
@@ -56,7 +56,7 @@
     "created_at": "2024-12-25T23:43:55.570Z",
     "updated_at": "2025-07-04T18:43:17.376Z",
     "name": "payment",
-    "image": "banners/payment_goPfA84.jpg"
+    "image": "banners/payment.jpg"
   }
 },
 {
@@ -66,7 +66,7 @@
     "created_at": "2024-12-25T23:44:19.508Z",
     "updated_at": "2025-07-04T18:43:26.955Z",
     "name": "catalog",
-    "image": "banners/catalog_YKGbsbO.jpg"
+    "image": "banners/catalog.jpg"
   }
 },
 {

@@ -1,12 +1,9 @@
 from asgiref.sync import sync_to_async
 from django.db import transaction
 
-from django_project.telegrambot.usersmanage.models import (
-    Cart,
-    Order,
-    OrderItem,
-    TelegramUser,
-)
+from django_project.telegrambot.usersmanage.models import (Cart, Order,
+                                                           OrderItem,
+                                                           TelegramUser)
 
 
 @sync_to_async

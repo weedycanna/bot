@@ -6,18 +6,10 @@ from django.conf import settings
 from fluentogram import TranslatorRunner
 from parler.utils.context import switch_language
 
-from keybords.inline import (
-    get_products_btns,
-    get_user_cart,
-    get_user_catalog_btns,
-    get_user_main_btns,
-)
-from queries.cart_queries import (
-    add_to_cart,
-    delete_from_cart,
-    get_user_carts,
-    reduce_product_in_cart,
-)
+from keybords.inline import (get_products_btns, get_user_cart,
+                             get_user_catalog_btns, get_user_main_btns)
+from queries.cart_queries import (add_to_cart, delete_from_cart,
+                                  get_user_carts, reduce_product_in_cart)
 from queries.category_queries import get_categories
 from queries.products_queries import get_products
 from utils.get_banner_image import get_banner_image

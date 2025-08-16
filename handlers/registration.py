@@ -3,13 +3,8 @@ from typing import Union
 from aiogram import F, Router, types
 from aiogram.filters import Command, CommandStart, StateFilter
 from aiogram.fsm.context import FSMContext
-from aiogram.types import (
-    CallbackQuery,
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-    Message,
-    ReplyKeyboardRemove,
-)
+from aiogram.types import (CallbackQuery, InlineKeyboardButton,
+                           InlineKeyboardMarkup, Message, ReplyKeyboardRemove)
 from django.utils import timezone
 from fluentogram import TranslatorRunner
 from phonenumbers import NumberParseException

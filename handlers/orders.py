@@ -6,38 +6,23 @@ from typing import Union
 from aiogram import F, Router, types
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from aiogram.types import (
-    CallbackQuery,
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-    KeyboardButton,
-    LabeledPrice,
-    Message,
-    ReplyKeyboardMarkup,
-    ReplyKeyboardRemove,
-)
+from aiogram.types import (CallbackQuery, InlineKeyboardButton,
+                           InlineKeyboardMarkup, KeyboardButton, LabeledPrice,
+                           Message, ReplyKeyboardMarkup, ReplyKeyboardRemove)
 from fluentogram import TranslatorRunner
 
 from app import crypto_client
 from callbacks.callbacks import OrderDetailCallBack
 from filters.chat_types import ChatTypeFilter
 from handlers.payment import CryptoApiManager
-from keybords.inline import (
-    MenuCallBack,
-    get_order_details_keyboard,
-    get_select_payment_keyboard,
-    get_user_main_btns,
-)
+from keybords.inline import (MenuCallBack, get_order_details_keyboard,
+                             get_select_payment_keyboard, get_user_main_btns)
 from keybords.reply import get_back_button
 from queries.banner_queries import get_banner
 from queries.cart_queries import clear_cart, get_cart_items
-from queries.order_queries import (
-    add_order_with_items,
-    get_order_by_id,
-    get_order_items,
-    get_order_status,
-    get_user_orders,
-)
+from queries.order_queries import (add_order_with_items, get_order_by_id,
+                                   get_order_items, get_order_status,
+                                   get_user_orders)
 from states.order_state import OrderState
 from utils.get_banner_image import get_banner_image
 from utils.utils import convert_currency, format_phone_number, format_price

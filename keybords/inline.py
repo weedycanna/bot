@@ -5,7 +5,8 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from fluentogram import TranslatorRunner
 from parler.utils.context import switch_language
 
-from callbacks.callbacks import LanguageCallBack, MenuCallBack, OrderDetailCallBack
+from callbacks.callbacks import (LanguageCallBack, MenuCallBack,
+                                 OrderDetailCallBack)
 from django_project.telegrambot.usersmanage.models import Category
 
 

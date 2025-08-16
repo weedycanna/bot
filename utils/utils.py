@@ -2,7 +2,8 @@ from decimal import Decimal
 from string import punctuation
 from typing import Set
 
-from phonenumbers import PhoneNumberFormat, format_number, is_valid_number, parse
+from phonenumbers import (PhoneNumberFormat, format_number, is_valid_number,
+                          parse)
 from phonenumbers.phonenumberutil import NumberParseException
 
 from handlers.payment import CryptoApiManager

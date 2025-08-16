@@ -6,7 +6,6 @@ from aiogram import F, Router, types
 from aiogram.filters import Command, StateFilter, or_f
 from aiogram.fsm.context import FSMContext
 from aiogram.types import FSInputFile, ReplyKeyboardRemove
-from django.conf import settings
 from fluentogram import TranslatorRunner
 
 from app import bot
@@ -18,19 +17,15 @@ from keybords.reply import get_admin_keyboard
 from queries.banner_queries import change_banner_image, get_info_pages
 from queries.category_queries import get_categories
 from queries.order_queries import total_orders
-from queries.products_queries import (
-    add_product,
-    delete_product,
-    get_product,
-    get_products,
-    total_products,
-    total_products_by_category,
-    update_product,
-)
+from queries.products_queries import (add_product, delete_product, get_product,
+                                      get_products, total_products,
+                                      total_products_by_category,
+                                      update_product)
 from queries.user_queries import total_users
 from states.banner_state import AddBanner
 from states.newsletter import Newsletter
 from states.product_state import AddProduct
+from utils.download_photo import download_telegram_photo
 
 admin_router = Router()
 admin_router.message.filter(ChatTypeFilter(["private"]), IsAdmin())
@@ -141,10 +136,7 @@ async def add_image_to_banner(
 
 
 @admin_router.message(AddBanner.image, F.photo)
-async def add_banner(
-    message: types.Message, state: FSMContext, i18n: TranslatorRunner
-) -> None:
-    image_id = message.photo[-1].file_id
+async def add_banner(message: types.Message, state: FSMContext, i18n: TranslatorRunner) -> None:
     if not message.caption:
         await message.answer(i18n.admin_banner_wrong_page())
         return
@@ -154,11 +146,18 @@ async def add_banner(
     if for_page not in pages_names:
         await message.answer(i18n.admin_banner_wrong_page())
         return
-    await change_banner_image(
-        for_page,
-        image_id,
-    )
-    await message.answer(i18n.admin_banner_success())
+
+    try:
+        save_path = await download_telegram_photo(message, "banners", for_page)
+
+        await change_banner_image(for_page, save_path)
+
+        await message.answer(i18n.admin_banner_success())
+
+    except (FileNotFoundError, AttributeError, OSError, TypeError):
+        await message.answer(i18n.admin_banner_error())
+        return
+
     await state.clear()
 
 
@@ -315,7 +314,7 @@ async def not_correct_add_price(message: types.Message, i18n: TranslatorRunner):
 
 
 @admin_router.message(AddProduct.image, or_f(F.photo, F.text == "."))
-async def add_image(message: types.Message, state: FSMContext, i18n: TranslatorRunner):
+async def add_image(message: types.Message, state: FSMContext, i18n: TranslatorRunner) -> None:
     try:
         if message.text == "." and AddProduct.product_for_change:
             await state.update_data(
@@ -326,17 +325,8 @@ async def add_image(message: types.Message, state: FSMContext, i18n: TranslatorR
                 )
             )
         elif message.photo:
-            photo = message.photo[-1]
-            file = await message.bot.get_file(photo.file_id)
-
-            file_name = f"product_{int(datetime.now().timestamp())}.jpg"
-            save_path = os.path.join("products", file_name)
-            full_path = os.path.join(settings.MEDIA_ROOT, save_path)
-
-            os.makedirs(os.path.dirname(full_path), exist_ok=True)
-            await message.bot.download_file(
-                file_path=file.file_path, destination=full_path
-            )
+            file_name = f"product_{int(datetime.now().timestamp())}"
+            save_path = await download_telegram_photo(message, "products", file_name)
             await state.update_data(image=save_path)
         else:
             await message.answer(i18n.admin_image_keep_current())
