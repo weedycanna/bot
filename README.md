@@ -1,75 +1,174 @@
-# Telegram Pizzeria Bot 🍕
+<h1 align="center"> 🍕 Telegram Pizzeria Bot 🍕 </h1>
 
-This bot was created to simplify the process of ordering pizza directly through Telegram. With an intuitive interface, users can effortlessly browse the menu, place orders, and make payments, all within a single chat. The bot ensures a smooth, secure, and efficient experience for both customers and administrators. For enhanced management, the bot features an advanced admin panel accessible via Telegram and Django Admin, providing a user-friendly interface for handling orders, products, categories, and etc. PostgreSQL is used as a reliable database for securely storing user data, orders, and catalog information, ensuring data integrity and performance. Additionally, Docker is implemented for easy deployment and scalability, allowing the bot to run seamlessly across different environments.
+</br>
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.12+-blue?style=for-the-badge&logo=python&logoColor=white">
+  <img src="https://img.shields.io/badge/Aiogram-3.0+-red?style=for-the-badge&logo=telegram&logoColor=white">
+  </br>
+  <img src="https://img.shields.io/badge/PostgreSQL-13+-blue?style=for-the-badge&logo=postgresql&logoColor=white">
+  <img src="https://img.shields.io/badge/Docker-Ready-blue?style=for-the-badge&logo=docker&logoColor=white">
+  </br>
+  <img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge">
+  </br>
+</p>
 
-In the bot you can find such functions:
-   - Viewing the catalog with convenient navigation and pagination
-   - Payment via Telegram Pay and cryptocurrency payments
-   - Placing orders and viewing order details
-   - Subscription check before using the bot
-   - User registration and profile with order history
-   - Sending notifications and messages to users
-   - Sales and activity statistics
-   - Admin panel in Telegram and Django Admin
-   - CRUD operations for managing products, categories, and banners
-   - Captcha for spam protection
-   - Localization
+<h1 align="left"> 📋 About</h1> 
 
-#### Stack:
+</br>
 
-- [Python](https://www.python.org/downloads/)
-- [PostgreSQL](https://www.postgresql.org/)
-- [Aiogram](https://docs.aiogram.dev/en/latest/)
-- [Docker](https://www.docker.com/)
-- [Django](https://www.djangoproject.com/)
+This bot was created to simplify the process of ordering pizza directly through Telegram. With an intuitive interface, users can effortlessly browse the menu, place orders, and make payments — all within a single chat. The bot ensures a smooth, secure, and efficient experience for both customers and administrators.
 
-## Local Developing
+For enhanced management, the bot features an advanced admin panel accessible via Telegram and Django Admin, providing a user-friendly interface for handling orders, products, categories, and more.
 
-All actions should be executed from the source directory of the project and only after installing all requirements.
+PostgreSQL is used as a reliable database for securely storing user data, orders, and catalog information, ensuring data integrity and performance.
 
-1. Firstly, create and activate a new virtual environment:
+Additionally, Docker is implemented for easy deployment and scalability, allowing the bot to run seamlessly across different environments.
+
+## Stack:
+
+ - **Backend**: [**`Python 3.12+`**](https://python.org/)
+ - **Framework**: [**`Aiogram 3.0+`**](https://docs.aiogram.dev/)
+ - **Database**: [**`PostgreSQL`**](https://postgresql.org/)
+ - **Admin Panel**: [**`Django`**](https://djangoproject.com/)
+ - **Deployment**: [**`Docker`**](https://docker.com/)
+
+### 📱 Main Menu
+<img src="demonstration/1.png" width="400" alt="Main Menu">
+
+### 🛒 Catalog & Ordering  
+<img src="demonstration/3.png" width="400" alt="Catalog">
+<img src="demonstration/5.png" width="400" alt="Product Cart">
+<img src="demonstration/8.png" width="400" alt="Orders">
+<img src="demonstration/9.png" width="400" alt="Order Details">
+
+### 👨‍💼 Admin Panel via Telegram or Django
+<img src="demonstration/10.png" width="400" alt="Admin Panel Telegram">
+<img src="demonstration/11.png" width="400" alt="Admin Panel Django">
+
+### 🔒 Captcha Protection
+<img src="demonstration/2.png" width="400" alt="Captcha">
+
+### 👤 User Profile
+<img src="demonstration/4.png" width="400" alt="Profile">
+
+### 💳 Payment System
+<img src="demonstration/7.png" width="400" alt="Payment">
+
+### 🛒 Cart
+<img src="demonstration/6.png" width="400" alt="Cart">
+
+## 🚀 Features
+
+### 👨‍💼 For Administrators
+* Advanced admin panel accessible via Telegram and Django Admin
+* CRUD operations for managing products, categories, and banners
+* Sales and activity statistics with detailed analytics
+* User management and order monitoring
+* Sending notifications and messages to users
+* Order status management and processing
+* Product inventory control
+
+### 👤 For Users
+* Intuitive catalog browsing with navigation and pagination
+* Payment via Telegram Pay and cryptocurrency payments
+* Easy order placement and order history viewing
+* User profile with personal information and preferences
+* Shopping cart functionality with quantity management
+* Real-time order tracking and notifications
+* Captcha protection for security
+* Localization support for multiple languages
+* Subscription verification before bot usage
+
+## 🛠️ Local Development
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/your-username/telegram-pizzeria-bot.git
+   cd telegram-pizzeria-bot
+   ```
+
+2. **Create and activate virtual environment:**
    ```bash
    python3.12 -m venv ../venv
    source ../venv/bin/activate
    ```
    
-2. Install packages:
+3. **Install dependencies:**
    ```bash
    pip install --upgrade pip
    pip install -r requirements.txt
    ```
-   
-3. Install database:
-   ```
-   For production Postgresql
-   For local Sqlite3
-   ```
 
-## Docker 
-
+4. **Configure environment variables:**
    ```bash
-   docker build .
-
-   docker-compose up
+   cp .env.example .env
    ```
    
-## Run application
+   Open `.env` file and fill in all required environment variables:
+   
+   ```env
+   # Bot Configuration
+   TOKEN=your_telegram_bot_token_here
+   
+   # Database Configuration
+   DB_PG=postgresql+asyncpg://username:password@localhost:5432/database_name
+   
+   # Payment Configuration
+   CRYPTO_TOKEN=your_crypto_payment_token_here
+   STAR_PAYMENT_TOKEN=your_star_payment_token_here
+   
+   # Other required variables...
+   ```
 
+   **Where to get tokens:**
+   - **Telegram Bot Token**: Create a bot via [@BotFather](https://t.me/botfather)
+   - **Crypto Payment Token**: Get from your cryptocurrency payment provider
+   - **Star Payment Token**: Get from Telegram Bot API documentation
+
+5. **Set up database:**
+   ```
+   For production: PostgreSQL
+   For local development: SQLite3
+   ```
+
+6. **Create Django superuser:**
+   ```bash
+   cd src
+   python manage.py createsuperuser
+   ```
+
+7. **Run the application:**
+   ```bash
+   python app.py
+   ```
+
+## 🐳 Docker Deployment
+
+### Quick Start
+```bash
+docker build .
+docker-compose up -d
 ```
-Example env values
 
-TOKEN=7765659692:AAG0gyOcBtuFiu2Ab1-9P0YYg0KtYy-tYEW
-DB_PG=postgresql+asyncpg://test:tests@localhost:5432/test
-CRYPTO_TOKEN=17965:AA83cK37am3814tjP8R50mqFiy5EgRQYzca
-STAR_PAYMENT_TOKEN=439694247:TEST:21a24e76-d547-4cbd-bdba-2a98f9aa474e
-
-Run a file called app.
+### View logs
+```bash
+docker-compose logs -f
 ```
 
-## License
+### Create superuser via Docker
+```bash
+docker-compose exec web python src/manage.py createsuperuser
+```
 
-This project uses the [MIT] license(https://github.com/Sauberr/pizzeria-bot/blob/master/LICENSE)
+## 💻 HotKeys
+* **Start** - `/start`
+* **Main menu** - `/menu`
+* **About** - `/about`
+* **User Profile** - `/profile`
+* **Payment** - `/payment`
+* **Orders** - `/orders`
+* **Shipping** - `/shipping`
+* **Admin Panel** - `/admin` (admin only)
 
-## Contact 
-
-To contact the author of the project, write to email 𝚍𝚖𝚒𝚝𝚛𝚒𝚢𝚋𝚒𝚛𝚒𝚕𝚔𝚘@𝚐𝚖𝚊𝚒𝚕.𝚌𝚘𝚖.
+## 📞 Contact 
+To contact the author of the project, write to email dmitriybirilko@gmail.com
