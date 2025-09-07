@@ -168,34 +168,6 @@ async def not_correct_add_banner(
     await message.answer(i18n.admin_banner_wrong_data())
 
 
-@admin_router.callback_query(StateFilter(None), F.data.startswith("edit_"))
-async def edit_product_callback(
-    callback: types.CallbackQuery, state: FSMContext, i18n: TranslatorRunner
-):
-    product_id = callback.data.split("_")[-1]
-    product_for_change = await get_product(int(product_id))
-
-    AddProduct.product_for_change = product_for_change
-
-    await callback.answer()
-    await callback.message.answer(
-        i18n.admin_product_edit_name(),
-        reply_markup=ReplyKeyboardRemove(),
-    )
-    await state.set_state(AddProduct.name)
-
-
-@admin_router.message(StateFilter(None), TranslatedText("admin_add_good"))
-async def get_add_product(
-    message: types.Message, state: FSMContext, i18n: TranslatorRunner
-):
-    await message.answer(
-        i18n.admin_product_add_name(),
-        reply_markup=ReplyKeyboardRemove(),
-    )
-    await state.set_state(AddProduct.name)
-
-
 @admin_router.message(StateFilter("*"), Command("cancel"))
 async def cancel_handler(
     message: types.Message, state: FSMContext, i18n: TranslatorRunner
@@ -214,7 +186,7 @@ async def back_step_handler(
 ):
     current_state = await state.get_state()
 
-    if current_state == AddProduct.name:
+    if current_state == AddProduct.en_name:
         await message.answer(i18n.admin_no_previous_step())
         return
 
@@ -228,55 +200,112 @@ async def back_step_handler(
         previous = step
 
 
-@admin_router.message(AddProduct.name, or_f(F.text, F.text == "."))
-async def add_name(message: types.Message, state: FSMContext, i18n: TranslatorRunner):
+@admin_router.callback_query(StateFilter(None), F.data.startswith("edit_"))
+async def edit_product_callback(
+    callback: types.CallbackQuery, state: FSMContext, i18n: TranslatorRunner
+):
+    product_id = callback.data.split("_")[-1]
+    product_for_change = await get_product(int(product_id))
+
+    AddProduct.product_for_change = product_for_change
+
+    await callback.answer()
+    await callback.message.answer(
+        i18n.admin_product_edit_name(),
+        reply_markup=ReplyKeyboardRemove(),
+    )
+    await state.set_state(AddProduct.en_name)
+
+
+@admin_router.message(StateFilter(None), TranslatedText("admin_add_good"))
+async def get_add_product(message: types.Message, state: FSMContext, i18n: TranslatorRunner):
+    await message.answer(
+        i18n.admin_product_add_en_name(),
+        reply_markup=ReplyKeyboardRemove(),
+    )
+    await state.set_state(AddProduct.en_name)
+
+
+@admin_router.message(AddProduct.en_name, or_f(F.text, F.text == "."))
+async def add_en_name(message: types.Message, state: FSMContext, i18n: TranslatorRunner):
     if message.text == ".":
-        await state.update_data(name=AddProduct.product_for_change.name)
+        await state.update_data(en_name=AddProduct.product_for_change.name_en if AddProduct.product_for_change else "")
     else:
         if not (4 <= len(message.text) <= 100):
             await message.answer(i18n.admin_product_name_error())
             return
+        await state.update_data(en_name=message.text)
 
-        await state.update_data(name=message.text)
-    await message.answer(i18n.admin_product_description())
-    await state.set_state(AddProduct.description)
+    await message.answer(i18n.admin_product_add_ru_name())
+    await state.set_state(AddProduct.ru_name)
 
 
-@admin_router.message(AddProduct.name)
-async def not_correct_add_name(message: types.Message, i18n: TranslatorRunner):
+@admin_router.message(AddProduct.en_name)
+async def not_correct_add_en_name(message: types.Message, i18n: TranslatorRunner):
     await message.answer(i18n.admin_product_name_wrong_data())
 
 
-@admin_router.message(AddProduct.description, F.text)
-async def add_description(
-    message: types.Message, state: FSMContext, i18n: TranslatorRunner
-):
+@admin_router.message(AddProduct.ru_name, or_f(F.text, F.text == "."))
+async def add_ru_name(message: types.Message, state: FSMContext, i18n: TranslatorRunner):
+    if message.text == ".":
+        await state.update_data(ru_name=AddProduct.product_for_change.name_ru if AddProduct.product_for_change else "")
+    else:
+        if not (4 <= len(message.text) <= 100):
+            await message.answer(i18n.admin_product_name_error())
+            return
+        await state.update_data(ru_name=message.text)
+
+    await message.answer(i18n.admin_product_add_en_description())
+    await state.set_state(AddProduct.en_description)
+
+
+@admin_router.message(AddProduct.ru_name)
+async def not_correct_add_ru_name(message: types.Message, i18n: TranslatorRunner):
+    await message.answer(i18n.admin_product_name_wrong_data())
+
+
+@admin_router.message(AddProduct.en_description, F.text)
+async def add_en_description(message: types.Message, state: FSMContext, i18n: TranslatorRunner):
     if message.text == "." and AddProduct.product_for_change:
-        await state.update_data(description=AddProduct.product_for_change.description)
+        await state.update_data(en_description=AddProduct.product_for_change.description_en)
     else:
         if not (4 <= len(message.text) <= 1000):
             await message.answer(i18n.admin_product_description_error())
             return
+        await state.update_data(en_description=message.text)
 
-        await state.update_data(description=message.text)
+    await message.answer(i18n.admin_product_add_ru_description())
+    await state.set_state(AddProduct.ru_description)
+
+
+@admin_router.message(AddProduct.en_description)
+async def not_correct_add_en_description(message: types.Message, i18n: TranslatorRunner):
+    await message.answer(i18n.admin_product_description_wrong_data())
+
+
+@admin_router.message(AddProduct.ru_description, F.text)
+async def add_ru_description(message: types.Message, state: FSMContext, i18n: TranslatorRunner):
+    if message.text == "." and AddProduct.product_for_change:
+        await state.update_data(ru_description=AddProduct.product_for_change.description_ru)
+    else:
+        if not (4 <= len(message.text) <= 1000):
+            await message.answer(i18n.admin_product_description_error())
+            return
+        await state.update_data(ru_description=message.text)
 
     categories = await get_categories()
     btns = {category.name: str(category.id) for category in categories}
-    await message.answer(
-        i18n.admin_choose_category(), reply_markup=get_callback_btns(btns=btns)
-    )
+    await message.answer(i18n.admin_choose_category(), reply_markup=get_callback_btns(btns=btns))
     await state.set_state(AddProduct.category)
 
 
-@admin_router.message(AddProduct.description)
-async def not_correct_add_description(message: types.Message, i18n: TranslatorRunner):
+@admin_router.message(AddProduct.ru_description)
+async def not_correct_add_ru_description(message: types.Message, i18n: TranslatorRunner):
     await message.answer(i18n.admin_product_description_wrong_data())
 
 
 @admin_router.callback_query(AddProduct.category)
-async def category_choice(
-    callback: types.CallbackQuery, state: FSMContext, i18n: TranslatorRunner
-):
+async def category_choice(callback: types.CallbackQuery, state: FSMContext, i18n: TranslatorRunner):
     if int(callback.data) in [category.id for category in await get_categories()]:
         await callback.answer()
         await state.update_data(category=callback.data)
@@ -302,8 +331,8 @@ async def add_price(message: types.Message, state: FSMContext, i18n: TranslatorR
         except ValueError:
             await message.answer(i18n.admin_price_error())
             return
-
         await state.update_data(price=message.text)
+
     await message.answer(i18n.admin_product_image())
     await state.set_state(AddProduct.image)
 
@@ -318,11 +347,7 @@ async def add_image(message: types.Message, state: FSMContext, i18n: TranslatorR
     try:
         if message.text == "." and AddProduct.product_for_change:
             await state.update_data(
-                image=(
-                    AddProduct.product_for_change.image.name
-                    if AddProduct.product_for_change.image
-                    else None
-                )
+                image=(AddProduct.product_for_change.image.name if AddProduct.product_for_change.image else None)
             )
         elif message.photo:
             file_name = f"product_{int(datetime.now().timestamp())}"

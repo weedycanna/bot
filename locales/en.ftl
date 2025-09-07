@@ -7,6 +7,8 @@ welcome_message =
 
     All this and more will be available after registration 🔽✅
 
+    Write your username first, and then follow the instructions
+
 # --- Language ---
 select_language = 🌐 Please select your language:
 language_selected = 🇺🇸 Language changed to English
@@ -263,9 +265,11 @@ admin_banner_instructions =
     {$pages}
 admin_banner_wrong_page = You write wrong page name, please choose the page from the list
 admin_banner_success = Banner added/changed successfully!
-admin_product_add_name = Enter the name of the product you want to add:
+admin_product_add_en_name = Enter the name of the product in en you want to add:
+admin_product_add_ru_name = Enter the name of the product in ru you want to add:
 admin_product_edit_name = Enter the name of the product you want to change:
-admin_product_description = Enter the description of the product:
+admin_product_add_en_description = Enter the description of the product in en:
+admin_product_add_ru_description = Enter the description of the product in ru:
 admin_product_price = Enter the price of the product:
 admin_product_image = Load the image of the product:
 admin_image_keep_current = Send a photo or '.' to keep the current image

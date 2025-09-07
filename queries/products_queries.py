@@ -1,19 +1,33 @@
 from typing import Optional
-
 from asgiref.sync import sync_to_async
-
 from django_project.telegrambot.usersmanage.models import Category, Product
 
 
 @sync_to_async
 def add_product(data: dict) -> None:
-    Product.objects.create(
-        name=data["name"],
-        description=data["description"],
+    product = Product.objects.create(
         price=float(data["price"]),
-        image=data["image"],
+        image=data.get("image"),
         category_id=int(data["category"]),
     )
+
+    ProductTranslation = product.translations.model
+
+    translations = [
+        ProductTranslation(
+            master=product,
+            language_code="en",
+            name=data["en_name"],
+            description=data["en_description"]
+        ),
+        ProductTranslation(
+            master=product,
+            language_code="ru",
+            name=data["ru_name"],
+            description=data["ru_description"]
+        )
+    ]
+    ProductTranslation.objects.bulk_create(translations)
 
 
 @sync_to_async
@@ -35,13 +49,41 @@ def get_product(product_id: int) -> Optional[Product]:
 
 @sync_to_async
 def update_product(product_id: int, data: dict) -> None:
-    Product.objects.filter(id=product_id).update(
-        name=data["name"],
-        description=data["description"],
-        price=float(data["price"]),
-        image=data["image"],
-        category_id=int(data["category"]),
-    )
+    product = Product.objects.get(id=product_id)
+
+    product.price = float(data["price"])
+    if "image" in data:
+        product.image = data["image"]
+    product.category_id = int(data["category"])
+    product.save()
+
+    ProductTranslation = product.translations.model
+
+    if "en_name" in data or "en_description" in data:
+        en_trans, created = ProductTranslation.objects.get_or_create(
+            master=product,
+            language_code="en",
+            defaults={"name": data.get("en_name", ""), "description": data.get("en_description", "")},
+        )
+        if not created:
+            if "en_name" in data:
+                en_trans.name = data["en_name"]
+            if "en_description" in data:
+                en_trans.description = data["en_description"]
+            en_trans.save()
+
+    if "ru_name" in data or "ru_description" in data:
+        ru_trans, created = ProductTranslation.objects.get_or_create(
+            master=product,
+            language_code="ru",
+            defaults={"name": data.get("ru_name", ""), "description": data.get("ru_description", "")},
+        )
+        if not created:
+            if "ru_name" in data:
+                ru_trans.name = data["ru_name"]
+            if "ru_description" in data:
+                ru_trans.description = data["ru_description"]
+            ru_trans.save()
 
 
 @sync_to_async
@@ -59,7 +101,5 @@ def total_products_by_category() -> dict[str, int]:
     categories = Category.objects.all()
     category_stats = {}
     for category in categories:
-        category_stats[category.name] = Product.objects.filter(
-            category_id=category.id
-        ).count()
+        category_stats[category.name] = Product.objects.filter(category_id=category.id).count()
     return category_stats
