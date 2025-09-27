@@ -4,9 +4,10 @@
   "pk": 1,
   "fields": {
     "created_at": "2024-12-25T23:41:16.445Z",
-    "updated_at": "2025-07-04T18:42:21.251Z",
+    "updated_at": "2025-01-29T17:33:11.705Z",
     "name": "main",
-    "image": "banners/main.jpg"
+    "image": "banners/main_CLJIAvr.jpg",
+    "description": "Главная страница"
   }
 },
 {
@@ -14,9 +15,10 @@
   "pk": 2,
   "fields": {
     "created_at": "2024-12-25T23:42:00.741Z",
-    "updated_at": "2025-07-04T18:42:33.993Z",
+    "updated_at": "2024-12-25T23:42:00.741Z",
     "name": "shipping",
-    "image": "banners/shipping.jpg"
+    "image": "banners/shipping_vbbACxM.jpg",
+    "description": "Доступные способы доставки:  \r\n🚚 Доставка курьером\r\n🏠 Доставка на дом\r\n🏢 Доставка в офис\r\n📦 Пункт самовывоза\r\nНедоступные способы доставки:\r\n🚁 Доставка дроном\r\n🚢 Доставка по морю\r\n🚄 Доставка поездом"
   }
 },
 {
@@ -24,9 +26,10 @@
   "pk": 3,
   "fields": {
     "created_at": "2024-12-25T23:42:14.883Z",
-    "updated_at": "2025-07-04T18:42:46.431Z",
+    "updated_at": "2024-12-25T23:42:14.883Z",
     "name": "cart",
-    "image": "banners/cart.jpg"
+    "image": "banners/cart_kxFwx4s.jpg",
+    "description": "Ваша корзина"
   }
 },
 {
@@ -34,9 +37,10 @@
   "pk": 4,
   "fields": {
     "created_at": "2024-12-25T23:43:10.652Z",
-    "updated_at": "2025-07-04T18:42:57.668Z",
+    "updated_at": "2024-12-25T23:43:10.652Z",
     "name": "about",
-    "image": "banners/about.jpg"
+    "image": "banners/about_V0EPRIi.jpg",
+    "description": "Telegram Pizzeria - это ваш надежный партнер в мире вкусной пиццы! Мы предлагаем широкий ассортимент пицц, приготовленных из свежих и качественных ингредиентов. Наши повара с любовью создают каждую пиццу, чтобы вы могли насладиться настоящим итальянским вкусом.\r\n\r\nПочему выбирают нас:\r\n- Быстрая доставка: Мы гарантируем быструю доставку, чтобы вы могли наслаждаться горячей пиццей в кратчайшие сроки.\r\n- Широкий выбор: В нашем меню вы найдете пиццы на любой вкус - от классических до авторских рецептов.\r\n- Качество и свежесть: Мы используем только свежие ингредиенты и следим за качеством каждого блюда.\r\n- Удобство заказа: Заказывайте пиццу через наш Telegram-бот и получайте бонусы за каждую покупку.\r\n\r\nПрисоединяйтесь к нам и наслаждайтесь лучшей пиццей в городе вместе с Telegram Pizzeria!"
   }
 },
 {
@@ -44,9 +48,10 @@
   "pk": 5,
   "fields": {
     "created_at": "2024-12-25T23:43:22.975Z",
-    "updated_at": "2025-07-04T18:43:08.037Z",
+    "updated_at": "2024-12-25T23:43:22.975Z",
     "name": "orders",
-    "image": "banners/orders.jpg"
+    "image": "banners/orders_g76nXwU.jfif",
+    "description": "Ваши заказы"
   }
 },
 {
@@ -54,9 +59,10 @@
   "pk": 6,
   "fields": {
     "created_at": "2024-12-25T23:43:55.570Z",
-    "updated_at": "2025-07-04T18:43:17.376Z",
+    "updated_at": "2024-12-25T23:43:55.570Z",
     "name": "payment",
-    "image": "banners/payment.jpg"
+    "image": "banners/payment_goPfA84.jpg",
+    "description": "Доступные способы оплаты: \r\n💳 Кредитная карта \r\n🏦 Банковский перевод\r\n 📱 Мобильный платеж \r\n💸 Наложенный платеж \r\n💸 Криптовалюта  \r\nНедоступные способы оплаты:\r\n💰 PayPal \r\n🛍️ Подарочные карты \r\n🏧 Оплата через банкомат"
   }
 },
 {
@@ -64,9 +70,10 @@
   "pk": 7,
   "fields": {
     "created_at": "2024-12-25T23:44:19.508Z",
-    "updated_at": "2025-07-04T18:43:26.955Z",
+    "updated_at": "2024-12-25T23:44:19.508Z",
     "name": "catalog",
-    "image": "banners/catalog.jpg"
+    "image": "banners/catalog_YKGbsbO.jpg",
+    "description": "Каталог наших товаров"
   }
 },
 {
@@ -74,153 +81,10 @@
   "pk": 8,
   "fields": {
     "created_at": "2025-01-27T18:00:38.073Z",
-    "updated_at": "2025-07-06T15:32:03.647Z",
+    "updated_at": "2025-01-27T18:00:38.073Z",
     "name": "profile",
-    "image": "banners/profile.jpg"
-  }
-},
-{
-  "model": "usersmanage.bannertranslation",
-  "pk": 1,
-  "fields": {
-    "language_code": "en",
-    "description": "Main page",
-    "master": 1
-  }
-},
-{
-  "model": "usersmanage.bannertranslation",
-  "pk": 2,
-  "fields": {
-    "language_code": "ru",
-    "description": "Главная страница",
-    "master": 1
-  }
-},
-{
-  "model": "usersmanage.bannertranslation",
-  "pk": 3,
-  "fields": {
-    "language_code": "en",
-    "description": "Available delivery methods:  \r\n🚚 Courier delivery\r\n🏠 Home delivery\r\n🏢 Office delivery\r\n📦 Pickup point\r\nUnavailable delivery methods:\r\n🚁 Drone delivery\r\n🚢 Sea delivery\r\n🚄 Train delivery",
-    "master": 2
-  }
-},
-{
-  "model": "usersmanage.bannertranslation",
-  "pk": 4,
-  "fields": {
-    "language_code": "ru",
-    "description": "Доступные способы доставки:  \r\n🚚 Доставка курьером\r\n🏠 Доставка на дом\r\n🏢 Доставка в офис\r\n📦 Пункт самовывоза\r\nНедоступные способы доставки:\r\n🚁 Доставка дроном\r\n🚢 Доставка по морю\r\n🚄 Доставка поездом",
-    "master": 2
-  }
-},
-{
-  "model": "usersmanage.bannertranslation",
-  "pk": 5,
-  "fields": {
-    "language_code": "en",
-    "description": "Your cart",
-    "master": 3
-  }
-},
-{
-  "model": "usersmanage.bannertranslation",
-  "pk": 6,
-  "fields": {
-    "language_code": "ru",
-    "description": "Ваша корзина",
-    "master": 3
-  }
-},
-{
-  "model": "usersmanage.bannertranslation",
-  "pk": 7,
-  "fields": {
-    "language_code": "en",
-    "description": "Telegram Pizzeria is your reliable partner in the world of delicious pizza! We offer a wide range of pizzas made from fresh and high-quality ingredients. Our chefs lovingly create each pizza so you can enjoy a true Italian taste.\r\n\r\nWhy choose us:\r\n- Fast delivery: We guarantee fast delivery so you can enjoy hot pizza as soon as possible.\r\n- Wide selection: In our menu, you will find pizzas for every taste - from classic to original recipes.\r\n- Quality and freshness: We use only fresh ingredients and monitor the quality of every dish.\r\n- Convenient ordering: Order pizza through our Telegram bot and get bonuses for every purchase.\r\n\r\nJoin us and enjoy the best pizza in town with Telegram Pizzeria!",
-    "master": 4
-  }
-},
-{
-  "model": "usersmanage.bannertranslation",
-  "pk": 8,
-  "fields": {
-    "language_code": "ru",
-    "description": "Telegram Pizzeria - это ваш надежный партнер в мире вкусной пиццы! Мы предлагаем широкий ассортимент пицц, приготовленных из свежих и качественных ингредиентов. Наши повара с любовью создают каждую пиццу, чтобы вы могли насладиться настоящим итальянским вкусом.\r\n\r\nПочему выбирают нас:\r\n- Быстрая доставка: Мы гарантируем быструю доставку, чтобы вы могли наслаждаться горячей пиццей в кратчайшие сроки.\r\n- Широкий выбор: В нашем меню вы найдете пиццы на любой вкус - от классических до авторских рецептов.\r\n- Качество и свежесть: Мы используем только свежие ингредиенты и следим за качеством каждого блюда.\r\n- Удобство заказа: Заказывайте пиццу через наш Telegram-бот и получайте бонусы за каждую покупку.\r\n\r\nПрисоединяйтесь к нам и наслаждайтесь лучшей пиццей в городе вместе с Telegram Pizzeria!",
-    "master": 4
-  }
-},
-{
-  "model": "usersmanage.bannertranslation",
-  "pk": 9,
-  "fields": {
-    "language_code": "en",
-    "description": "Your orders",
-    "master": 5
-  }
-},
-{
-  "model": "usersmanage.bannertranslation",
-  "pk": 10,
-  "fields": {
-    "language_code": "ru",
-    "description": "Ваши заказы",
-    "master": 5
-  }
-},
-{
-  "model": "usersmanage.bannertranslation",
-  "pk": 11,
-  "fields": {
-    "language_code": "en",
-    "description": "Available payment methods: \r\n💳 Credit card \r\n🏦 Bank transfer\r\n📱 Mobile payment \r\n💸 Cash on delivery \r\n💸 Cryptocurrency  \r\nUnavailable payment methods:\r\n💰 PayPal \r\n🛍️ Gift cards \r\n🏧 ATM payment",
-    "master": 6
-  }
-},
-{
-  "model": "usersmanage.bannertranslation",
-  "pk": 12,
-  "fields": {
-    "language_code": "ru",
-    "description": "Доступные способы оплаты: \r\n💳 Кредитная карта \r\n🏦 Банковский перевод\r\n📱 Мобильный платеж \r\n💸 Наложенный платеж \r\n💸 Криптовалюта  \r\nНедоступные способы оплаты:\r\n💰 PayPal \r\n🛍️ Подарочные карты \r\n🏧 Оплата через банкомат",
-    "master": 6
-  }
-},
-{
-  "model": "usersmanage.bannertranslation",
-  "pk": 13,
-  "fields": {
-    "language_code": "en",
-    "description": "Our product catalog",
-    "master": 7
-  }
-},
-{
-  "model": "usersmanage.bannertranslation",
-  "pk": 14,
-  "fields": {
-    "language_code": "ru",
-    "description": "Каталог наших товаров",
-    "master": 7
-  }
-},
-{
-  "model": "usersmanage.bannertranslation",
-  "pk": 15,
-  "fields": {
-    "language_code": "en",
-    "description": "--------------------",
-    "master": 8
-  }
-},
-{
-  "model": "usersmanage.bannertranslation",
-  "pk": 16,
-  "fields": {
-    "language_code": "ru",
-    "description": "--------------------",
-    "master": 8
+    "image": "banners/profile.jpg",
+    "description": ""
   }
 }
 ]

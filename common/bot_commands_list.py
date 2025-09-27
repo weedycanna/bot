@@ -8,5 +8,4 @@ private = [
     BotCommand(command="/shipping", description="Delivery options 🚚"),
     BotCommand(command="/orders", description="Your orders 📦"),
     BotCommand(command="/profile", description="Profile 👤"),
-    BotCommand(command="/admin", description="Admin panel 🔧"),
 ]

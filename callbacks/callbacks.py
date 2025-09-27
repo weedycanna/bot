@@ -11,7 +11,3 @@ class MenuCallBack(CallbackData, prefix="menu"):
 
 class OrderDetailCallBack(CallbackData, prefix="order_detail"):
     order_id: str
-
-
-class LanguageCallBack(CallbackData, prefix="lang"):
-    language: str

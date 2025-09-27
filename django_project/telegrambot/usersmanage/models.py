@@ -5,18 +5,12 @@ from django.contrib.auth.models import AbstractUser, PermissionsMixin
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from parler.models import TranslatableModel, TranslatedFields
 from phonenumber_field.modelfields import PhoneNumberField
 
 ORDER_STATUS = (
     ("pending", "pending"),
     ("completed", "completed"),
     ("cancelled", "cancelled"),
-)
-
-LANGUAGE = (
-    ("en", "English"),
-    ("ru", "Russian"),
 )
 
 
@@ -28,13 +22,11 @@ class TimeBasedModel(models.Model):
         abstract = True
 
 
-class Banner(TranslatableModel, TimeBasedModel):
+class Banner(TimeBasedModel):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=25, unique=True)
     image = models.ImageField(upload_to="banners", blank=True, null=True)
-    translations = TranslatedFields(
-        description=models.TextField(max_length=1024, blank=True, null=True)
-    )
+    description = models.TextField(max_length=1024, blank=True, null=True)
 
     class Meta:
         verbose_name_plural: str = "Banners"
@@ -44,9 +36,9 @@ class Banner(TranslatableModel, TimeBasedModel):
         return f"Banner {self.name}"
 
 
-class Category(TranslatableModel, TimeBasedModel):
+class Category(TimeBasedModel):
     id = models.AutoField(primary_key=True)
-    translations = TranslatedFields(name=models.CharField(max_length=150))
+    name = models.CharField(max_length=150)
 
     class Meta:
         verbose_name_plural: str = "Categories"
@@ -56,12 +48,10 @@ class Category(TranslatableModel, TimeBasedModel):
         return f"{self.name}"
 
 
-class Product(TranslatableModel, TimeBasedModel):
+class Product(TimeBasedModel):
     id = models.AutoField(primary_key=True)
-    translations = TranslatedFields(
-        name=models.CharField(max_length=150),
-        description=models.TextField(max_length=1024),
-    )
+    name = models.CharField(max_length=150)
+    description = models.TextField(max_length=1024)
     price = models.DecimalField(max_digits=7, decimal_places=2)
     image = models.ImageField(upload_to="products", blank=True, null=True)
     category = models.ForeignKey(
@@ -86,10 +76,11 @@ class AdminUser(AbstractUser):
 class TelegramUser(TimeBasedModel):
     id = models.AutoField(primary_key=True)
     user_id = models.BigIntegerField(unique=True)
-    first_name = models.CharField(_("first name"), max_length=30)
-    phone_number = PhoneNumberField(_("phone number"), unique=True)
-    language = models.CharField(
-        _("language"), max_length=10, choices=LANGUAGE, default="en"
+    first_name = models.CharField(
+        _("first name"), max_length=30
+    )
+    phone_number = PhoneNumberField(
+        _("phone number"), unique=True
     )
 
     class Meta:
@@ -171,7 +162,7 @@ class CaptchaRecord(TimeBasedModel):
 
     class Meta:
         unique_together = ("user",)
-        verbose_name_plural: str = "Captcha"
+        verbose_name_plural: str = "Captchas"
         verbose_name: str = "Captcha"
 
     def __str__(self):

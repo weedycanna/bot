@@ -10,12 +10,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+from app_config import db_config
 from pathlib import Path
 from typing import Any, Dict, List
 
 from django.utils.translation import gettext_lazy as _
-
-from app_config import db_config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -50,7 +49,6 @@ INSTALLED_APPS: List[str] = [
     "django.contrib.staticfiles",
     "django_project.telegrambot.usersmanage",
     "phonenumber_field",
-    "parler",
 ]
 
 MIDDLEWARE: List[str] = [
@@ -82,18 +80,6 @@ TEMPLATES: List[Dict[str, str]] = [
 ]
 
 WSGI_APPLICATION: str = "django_project.telegrambot.telegrambot.wsgi.application"
-
-
-PARLER_LANGUAGES = {
-    None: (
-        {"code": "en"},
-        {"code": "ru"},
-    ),
-    "default": {
-        "fallbacks": ["en"],
-        "hide_untranslated": False,
-    },
-}
 
 
 # Database

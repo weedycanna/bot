@@ -2,27 +2,21 @@ from typing import Dict, List, Tuple
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from fluentogram import TranslatorRunner
-from parler.utils.context import switch_language
 
-from callbacks.callbacks import (LanguageCallBack, MenuCallBack,
-                                 OrderDetailCallBack)
-from django_project.telegrambot.usersmanage.models import Category
+from callbacks.callbacks import MenuCallBack, OrderDetailCallBack
 
 
-def get_user_main_btns(*, level: int, i18n: TranslatorRunner, sizes: Tuple[int] = (2,)):
+def get_user_main_btns(*, level: int, sizes: Tuple[int] = (2,)):
     keyboard = InlineKeyboardBuilder()
     btns = {
-        i18n.main_menu_goods(): "catalog",
-        i18n.main_menu_cart(): "cart",
-        i18n.main_menu_orders(): "orders",
-        i18n.main_menu_about(): "about",
-        i18n.main_menu_payment(): "payment",
-        i18n.main_menu_delivery(): "shipping",
-        i18n.main_menu_profile(): "profile",
-        i18n.main_menu_language(): "language",
+        "Goods 🍕": "catalog",
+        "Cart 🛒": "cart",
+        "Orders 📦": "orders",
+        "About us ℹ️": "about",
+        "Payment 💰": "payment",
+        "Delivery 🚚": "shipping",
+        "Profile 👤": "profile",
     }
-
     for text, menu_name in btns.items():
         if menu_name == "catalog":
             keyboard.add(
@@ -54,13 +48,6 @@ def get_user_main_btns(*, level: int, i18n: TranslatorRunner, sizes: Tuple[int] 
                     callback_data=MenuCallBack(level=level, menu_name=menu_name).pack(),
                 )
             )
-        elif menu_name == "language":
-            keyboard.add(
-                InlineKeyboardButton(
-                    text=text,
-                    callback_data=MenuCallBack(level=level, menu_name=menu_name).pack(),
-                )
-            )
         else:
             keyboard.add(
                 InlineKeyboardButton(
@@ -74,18 +61,18 @@ def get_user_main_btns(*, level: int, i18n: TranslatorRunner, sizes: Tuple[int] 
 
 def get_user_cart(
     *,
-    i18n: TranslatorRunner,
     level: int,
     page: int | None,
     pagination_btns: dict | None,
     product_id: int | None,
     sizes: tuple[int] = (3,),
 ):
+
     keyboard = InlineKeyboardBuilder()
     if page:
         keyboard.add(
             InlineKeyboardButton(
-                text=i18n.delete_button(),
+                text="Delete",
                 callback_data=MenuCallBack(
                     level=level, menu_name="delete", product_id=product_id, page=page
                 ).pack(),
@@ -136,11 +123,11 @@ def get_user_cart(
 
         row2 = [
             InlineKeyboardButton(
-                text=i18n.main_menu_button(),
+                text="Main 🏠",
                 callback_data=MenuCallBack(level=0, menu_name="main").pack(),
             ),
             InlineKeyboardButton(
-                text=i18n.order_button(),
+                text="Order 🛍️",
                 callback_data=MenuCallBack(level=0, menu_name="order").pack(),
             ),
         ]
@@ -148,7 +135,7 @@ def get_user_cart(
     else:
         keyboard.add(
             InlineKeyboardButton(
-                text=i18n.main_menu_button(),
+                text="Main 🏠",
                 callback_data=MenuCallBack(level=0, menu_name="main").pack(),
             )
         )
@@ -157,48 +144,40 @@ def get_user_cart(
 
 
 def get_user_catalog_btns(
-    *,
-    i18n: TranslatorRunner,
-    level: int,
-    user_language: str,
-    categories: List[Category],
-    sizes: Tuple[int] = (2,),
+    *, level: int, categories: List[str], sizes: Tuple[int] = (2,)
 ):
     keyboard = InlineKeyboardBuilder()
 
     keyboard.add(
         InlineKeyboardButton(
-            text=i18n.back_button(),
+            text="Back",
             callback_data=MenuCallBack(level=level - 1, menu_name="main").pack(),
         )
     )
     keyboard.add(
         InlineKeyboardButton(
-            text=i18n.cart_button(),
-            callback_data=MenuCallBack(level=3, menu_name="cart").pack(),
+            text="Cart 🛒", callback_data=MenuCallBack(level=3, menu_name="cart").pack()
         )
     )
+
     for c in categories:
-        with switch_language(c, user_language):
-            keyboard.add(
-                InlineKeyboardButton(
-                    text=c.name,
-                    callback_data=MenuCallBack(
-                        level=level + 1, menu_name=c.name, category=c.id
-                    ).pack(),
-                )
+        keyboard.add(
+            InlineKeyboardButton(
+                text=c.name,
+                callback_data=MenuCallBack(
+                    level=level + 1, menu_name=c.name, category=c.id
+                ).pack(),
             )
+        )
 
     return keyboard.adjust(*sizes).as_markup()
 
 
 def get_products_btns(
     *,
-    i18n: TranslatorRunner,
     level: int,
     category: int,
     page: int,
-    user_language: str,
     pagination_btns: dict,
     product_id: int,
     sizes: Tuple[int] = (2, 1),
@@ -207,19 +186,18 @@ def get_products_btns(
 
     keyboard.add(
         InlineKeyboardButton(
-            text=i18n.back_button(),
+            text="Back",
             callback_data=MenuCallBack(level=level - 1, menu_name="catalog").pack(),
         )
     )
     keyboard.add(
         InlineKeyboardButton(
-            text=i18n.cart_button(),
-            callback_data=MenuCallBack(level=3, menu_name="cart").pack(),
+            text="Cart 🛒", callback_data=MenuCallBack(level=3, menu_name="cart").pack()
         )
     )
     keyboard.add(
         InlineKeyboardButton(
-            text=i18n.buy_button(),
+            text="Buy 💵",
             callback_data=MenuCallBack(
                 level=level, menu_name="add_to_cart", product_id=product_id
             ).pack(),
@@ -261,21 +239,24 @@ def get_products_btns(
 
 
 def get_callback_btns(*, btns: Dict[str, str], sizes: Tuple[int] = (2,)):
+
     keyboard = InlineKeyboardBuilder()
 
     for text, data in btns.items():
+
         keyboard.add(InlineKeyboardButton(text=text, callback_data=data))
 
     return keyboard.adjust(*sizes).as_markup()
 
 
-def get_order_details_keyboard(orders, i18n):
+def get_order_details_keyboard(orders):
+
     keyboard = []
     for order in orders:
         keyboard.append(
             [
                 InlineKeyboardButton(
-                    text=i18n.order_detail_button(order_id=str(order.id)[:8]),
+                    text=f"📋 Order details #{str(order.id)[:8]}",
                     callback_data=OrderDetailCallBack(order_id=str(order.id)).pack(),
                 )
             ]
@@ -284,8 +265,8 @@ def get_order_details_keyboard(orders, i18n):
     keyboard.append(
         [
             InlineKeyboardButton(
-                text=i18n.back_button(),
-                callback_data=MenuCallBack(menu_name="main", level=1 - 1).pack(),
+                text="◀️ Back",
+                callback_data=MenuCallBack(menu_name="main", level=1-1).pack(),
             )
         ]
     )
@@ -293,20 +274,15 @@ def get_order_details_keyboard(orders, i18n):
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
 
 
-def get_inline_back_button(i18n: TranslatorRunner):
+def get_inline_back_button():
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text=i18n.back_button(),
-                    callback_data=MenuCallBack(menu_name="main", level=1 - 1).pack(),
-                )
-            ]
+            [InlineKeyboardButton(text="⬅️ Back", callback_data=MenuCallBack(menu_name="main", level=1-1).pack())]
         ]
     )
 
 
-def get_select_payment_keyboard(i18n: TranslatorRunner):
+def get_select_payment_keyboard():
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -318,47 +294,8 @@ def get_select_payment_keyboard(i18n: TranslatorRunner):
                 InlineKeyboardButton(text="ETH ⟠", callback_data="crypto_ETH"),
             ],
             [
-                InlineKeyboardButton(
-                    text=i18n.star_payment_btn(), callback_data="star_payment"
-                )
+                InlineKeyboardButton(text="Star Payment ⭐", callback_data="star_payment")
             ],
-            [
-                InlineKeyboardButton(
-                    text=i18n.back_button(), callback_data="cancel_order"
-                )
-            ],
+            [InlineKeyboardButton(text="Back ⬅️", callback_data="cancel_order")]
         ]
     )
-
-
-def get_language_selection_keyboard(i18n: TranslatorRunner):
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text="🇺🇸 English",
-                    callback_data=LanguageCallBack(language="en").pack(),
-                ),
-                InlineKeyboardButton(
-                    text="🇷🇺 Русский",
-                    callback_data=LanguageCallBack(language="ru").pack(),
-                ),
-            ],
-            [
-                InlineKeyboardButton(
-                    text=i18n.back_button(),
-                    callback_data=MenuCallBack(menu_name="main", level=0).pack(),
-                )
-            ],
-        ]
-    )
-
-
-def create_keyboard(*buttons, row_width=1):
-    kb = []
-    for i in range(0, len(buttons), row_width):
-        row = buttons[i : i + row_width]
-        kb.append(
-            [InlineKeyboardButton(text=text, callback_data=data) for text, data in row]
-        )
-    return InlineKeyboardMarkup(inline_keyboard=kb)

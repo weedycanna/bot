@@ -1,6 +1,5 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from parler.admin import TranslatableAdmin
 
 from .models import (AdminUser, Banner, CaptchaRecord, Cart, Category, Order,
                      OrderItem, Product, TelegramUser)
@@ -24,7 +23,7 @@ class AdminUserAdmin(admin.ModelAdmin):
 
 
 @admin.register(Banner)
-class BannerAdmin(TranslatableAdmin):
+class BannerAdmin(admin.ModelAdmin):
     def thumbnail(self, object):
         return format_html('<img src="{}" width="100";" />'.format(object.image.url))
 
@@ -42,7 +41,7 @@ class BannerAdmin(TranslatableAdmin):
 
 
 @admin.register(Category)
-class CategoryAdmin(TranslatableAdmin):
+class CategoryAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "created_at", "updated_at")
     search_fields = ("name",)
     list_filter = ("created_at", "updated_at")
@@ -50,7 +49,7 @@ class CategoryAdmin(TranslatableAdmin):
 
 
 @admin.register(Product)
-class ProductAdmin(TranslatableAdmin):
+class ProductAdmin(admin.ModelAdmin):
     def thumbnail(self, object):
         if object.image:
             return format_html('<img src="{}" width="40";" />'.format(object.image.url))
@@ -62,7 +61,6 @@ class ProductAdmin(TranslatableAdmin):
         "price",
         "category",
         "thumbnail",
-        "description",
         "created_at",
         "updated_at",
     )
@@ -78,11 +76,10 @@ class TelegramUserAdmin(admin.ModelAdmin):
         "first_name",
         "phone_number",
         "user_id",
-        "language",
         "created_at",
         "updated_at",
     )
-    list_display_links = ("first_name", "phone_number", "user_id", "language")
+    list_display_links = ("first_name", "phone_number", "user_id")
     search_fields = ("first_name", "phone_number", "user_id")
     list_filter = ("created_at", "updated_at")
     ordering = ("first_name",)
