@@ -18,5 +18,6 @@ async def get_banner_image(menu_name: str, i18n: TranslatorRunner) -> InputMedia
         raise FileNotFoundError(i18n.banner_image_not_found(path=image_path))
 
     return InputMediaPhoto(
-        media=FSInputFile(image_path), caption=i18n.get(str(banner.description))
+        media=FSInputFile(image_path),
+        caption=str(banner.description) if banner.description else ""
     )

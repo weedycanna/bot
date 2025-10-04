@@ -6,7 +6,7 @@ from aiogram.filters import Command
 from fluentogram import TranslatorRunner
 
 from filters.chat_types import ChatTypeFilter
-from utils.utils import clean_text, get_restricted_words
+from utils.text_processing import clean_text, get_restricted_words
 
 user_group_router = Router()
 user_group_router.message.filter(ChatTypeFilter(["group", "supergroup"]))

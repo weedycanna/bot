@@ -14,7 +14,7 @@ from queries.category_queries import get_categories
 from queries.products_queries import get_products
 from utils.get_banner_image import get_banner_image
 from utils.paginator import Paginator
-from utils.utils import convert_currency, format_price
+from utils.currency import  convert_currency, format_price
 
 
 async def main_menu(level: int, menu_name: str, i18n: TranslatorRunner) -> tuple:

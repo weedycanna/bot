@@ -21,7 +21,8 @@ from queries.order_queries import get_user_orders
 from queries.user_queries import create_telegram_user, get_user
 from states.registration_state import RegistrationStates
 from utils.get_banner_image import get_banner_image
-from utils.utils import format_phone_number
+from utils.phone_formatting import format_phone_number
+
 
 registration_router = Router()
 registration_router.message.filter(ChatTypeFilter(["private"]))

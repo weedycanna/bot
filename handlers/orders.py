@@ -25,7 +25,8 @@ from queries.order_queries import (add_order_with_items, get_order_by_id,
                                    get_user_orders)
 from states.order_state import OrderState
 from utils.get_banner_image import get_banner_image
-from utils.utils import convert_currency, format_phone_number, format_price
+from utils.currency import convert_currency, format_price
+from utils.phone_formatting import format_phone_number
 
 order_router = Router()
 order_router.message.filter(ChatTypeFilter(["private"]))
